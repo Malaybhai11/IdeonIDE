@@ -8,11 +8,9 @@ export default function tokenize(src: string) {
 
     while (src[i]) {
         if (isWhiteSpace(src[i] as string)) {
-            // console.log('Stucked in first condition')
             i++;
             continue;
         } else if (src[i] === 'F') {
-            // console.log('Stucked in second condition')
             let token_string: string = '';
 
             while (src[i] !== ' ') {
@@ -23,7 +21,6 @@ export default function tokenize(src: string) {
                 let path: string = '';
 
                 while (src[j] !== '\n') {
-                    // console.log('Stucked in second child while loop')
                     path += src[j];
                     j++;
                 }
