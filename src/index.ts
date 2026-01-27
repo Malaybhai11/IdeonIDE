@@ -9,4 +9,5 @@ function compile(src: string, debug: boolean) {
 
 compile(`
     File src/index.ts
+    Write \`console.log(\`Hello, World\`)\`
 `, true)
