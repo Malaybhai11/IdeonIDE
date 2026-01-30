@@ -1,6 +1,7 @@
 import { exit } from 'process'
 import type {
     File,
+    Replace,
     Shell,
     Write
 } from '../../types/token.d.ts'
@@ -78,7 +79,6 @@ export default function tokenize(src: string) {
             let token_string: string = ''
 
             while (src[i] !== ' ') {
-                // console.log(`Current token is '${src[i]}'`)
                 token_string += src[i]
                 i++
             }
@@ -106,6 +106,40 @@ export default function tokenize(src: string) {
                 i = j + 1
             } else {
                 console.log(`Unexpected token '${token_string}'`)
+                exit(1)
+            }
+        }
+        // Replace token
+        else if (src[i] === 'R') {
+            let token_string: string = ''
+
+            while (src[i] !== ' ') {
+                token_string += src[i]
+                i++
+            }
+            if (token_string === 'Replace') {
+                let j = i + 2
+                let old_string: string = ''
+                let new_string: string = ''
+                while (src[j] !== '`') {
+                    old_string += src[j]
+                    j++
+                }
+                j += 3
+                while (src[j] !== '`') {
+                    new_string += src[j]
+                    j++
+                }
+                i = j + 1
+
+                tokens.push({
+                    type: 'Replace',
+                    old_string,
+                    new_string
+                } as Replace)
+
+            } else {
+                console.log(`Unexpected character '${token_string}'`)
                 exit(1)
             }
         }
