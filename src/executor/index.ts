@@ -27,7 +27,7 @@ export default function run(instructions: Instruction[], cwd: string = process.c
             case OpCode.WRITE_CONTENT:
                 if (!currentFile) throw new Error("No file selected for write operation");
                 ensureDirectoryExistence(currentFile);
-                fs.writeFileSync(currentFile, inst.args[0] as string, 'utf-8');
+                fs.writeFileSync(currentFile, (inst.args[0] as string).trim(), 'utf-8');
                 console.log(`Wrote to: ${currentFile}`);
                 break;
                 
