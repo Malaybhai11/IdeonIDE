@@ -1,26 +1,46 @@
 {
-  "name": "ai-ide",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
+  "name": "ideon",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npm-run-all --parallel dev:frontend dev:backend",
+    "dev:frontend": "next dev",
+    "dev:backend": "convex dev",
+    "predev": "convex dev --until-success && convex dashboard",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Malaybhai11/AI-IDE.git"
+  "dependencies": {
+    "@clerk/clerk-react": "^5.60.0",
+    "@clerk/nextjs": "^6.37.1",
+    "convex": "^1.31.7",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Malaybhai11/AI-IDE/issues"
-  },
-  "homepage": "https://github.com/Malaybhai11/AI-IDE#readme",
   "devDependencies": {
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
+    "@convex-dev/eslint-plugin": "^1.1.1",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^24.10.9",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.6",
+    "npm-run-all2": "^8.0.4",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@tailwindcss/oxide",
+      "esbuild",
+      "sharp"
+    ],
+    "ignoredBuiltDependencies": [
+      "unrs-resolver"
+    ]
   }
 }
