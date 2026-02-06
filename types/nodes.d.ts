@@ -1,4 +1,4 @@
-import type { Token } from './token.d.ts'
+import type { Token } from './token.js'
 
 export type NodeType = 'Program' | 'FileContext' | 'ShellNode' | 'WriteNode' | 'ReplaceNode';
 

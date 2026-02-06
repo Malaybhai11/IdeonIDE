@@ -1,4 +1,4 @@
-import type { Program, FileContext } from '../../types/ast.d.ts'
+import type { Program, FileContext } from '../../types/nodes.js'
 
 export default function analyze(program: Program): void {
     for (const node of program.body) {

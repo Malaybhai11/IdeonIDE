@@ -1,5 +1,5 @@
 import tokenize from './tokenizer/index.ts'
-import parse from './parser/index.ts'
+import Parser from './parser/index.ts'
 import analyze from './analyzer/index.ts'
 import generate from './generator/index.ts'
 import run from './executor/index.ts'
@@ -10,7 +10,7 @@ export function compile(src: string, debug: boolean) {
         if (debug) {
             console.log('Tokens:', JSON.stringify(tokens, null, 2));
         }
-        const ast = parse(tokens)
+        const ast = new Parser(tokens).parse()
         if (debug) {
             console.log('AST:', JSON.stringify(ast, null, 2));
         }
