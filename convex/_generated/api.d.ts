@@ -8,7 +8,11 @@
  * @module
  */
 
-import type * as myFunctions from "../myFunctions.js";
+import type * as auth from "../auth.js";
+import type * as conversations from "../conversations.js";
+import type * as files from "../files.js";
+import type * as projects from "../projects.js";
+import type * as system from "../system.js";
 
 import type {
   ApiFromModules,
@@ -17,7 +21,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  myFunctions: typeof myFunctions;
+  auth: typeof auth;
+  conversations: typeof conversations;
+  files: typeof files;
+  projects: typeof projects;
+  system: typeof system;
 }>;
 
 /**

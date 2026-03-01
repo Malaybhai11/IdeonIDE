@@ -1,51 +1,261 @@
-# Welcome to your Convex + Next.js + Clerk app
+# IDEON - Build a Cursor AI Alternative
 
-This is a [Convex](https://convex.dev/) project created with [`npm create convex`](https://www.npmjs.com/package/create-convex).
+This is the repository for a comprehensive [YouTube tutorial series](https://youtu.be/Xf9rHPNBMyQ) where we build a **fully-featured cloud IDE** from scratch.
 
-After the initial setup (<2 minutes) you'll have a working full-stack app using:
+[![Watch the Tutorial](https://img.shields.io/badge/YouTube-Watch%20Tutorial-red?style=for-the-badge&logo=youtube)](https://youtu.be/Xf9rHPNBMyQ)
 
-- Convex as your backend (database, server logic)
-- [React](https://react.dev/) as your frontend (web page interactivity)
-- [Next.js](https://nextjs.org/) for optimized web hosting and page routing
-- [Tailwind](https://tailwindcss.com/) for building great looking accessible UI
-- [Clerk](https://clerk.com/) for authentication
+> **Note:** This is **Part 1 of 2** of the tutorial series. The codebase is functional but incomplete - Part 2 will add the AI Agent, WebContainer preview, and GitHub integration.
 
-## Get started
+## What We're Building
 
-If you just cloned this codebase and didn't use `npm create convex`, run:
+IDEON is a browser-based IDE inspired by Cursor AI, featuring:
+
+- Real-time collaborative code editing
+- AI-powered code suggestions and quick edit (Cmd+K)
+- Conversation-based AI assistant
+- In-browser code execution with WebContainer
+- GitHub import/export integration
+- Multi-file project management
+
+## Tech Stack
+
+| Category      | Technologies                                                |
+| ------------- | ----------------------------------------------------------- |
+| **Frontend**  | Next.js 16, React 19, TypeScript, Tailwind CSS 4            |
+| **Editor**    | CodeMirror 6, Custom Extensions, One Dark Theme             |
+| **Backend**   | Convex (Real-time DB), Inngest (Background Jobs)            |
+| **AI**        | Claude Sonnet 4 (preferred) or Gemini 2.0 Flash (free tier) |
+| **Auth**      | Clerk (with GitHub OAuth)                                   |
+| **Execution** | WebContainer API, xterm.js                                  |
+| **UI**        | shadcn/ui, Radix UI                                         |
+
+## Part 1 Contents (Chapters 1-12)
+
+### Phase 1: Foundation & Sponsor Technologies
+
+- **Chapter 1:** Project Setup, UI Library & Theme
+- **Chapter 2:** Clerk Authentication & Protected Routes
+- **Chapter 3:** Convex Database & Real-time Setup
+- **Chapter 4:** Inngest - Background Jobs & Non-Blocking UI
+- **Chapter 5:** Firecrawl - Teaching AI with Live Documentation
+- **Chapter 6:** Sentry - Error Tracking & LLM Monitoring
+- **Chapter 7:** Projects Dashboard & Landing Page
+
+### Phase 2: File System & Editor
+
+- **Chapter 8:** Project IDE Layout & Resizable Panes
+- **Chapter 9:** File Explorer - Full Implementation
+- **Chapter 10:** Code Editor & State Management
+
+### Phase 3: AI Features (Partial)
+
+- **Chapter 11:** AI Suggestions & Quick Edit
+- **Chapter 12:** Conversation System
+
+## Part 2 Contents (Chapters 13-16) - Coming Soon
+
+- **Chapter 13:** AI Agent & Tools (AgentKit, file management tools)
+- **Chapter 14:** WebContainer, Terminal & Preview
+- **Chapter 15:** GitHub Import & Export
+- **Chapter 16:** AI Project Creation & Final Polish
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20.09+
+- npm or pnpm
+- Accounts needed:
+  - [Clerk](https://cwa.run/clerk) - Authentication
+  - [Convex](https://cwa.run/convex) - Database
+  - [Inngest](https://cwa.run/inngest) - Background jobs
+  - [Anthropic](https://anthropic.com) or [Google AI Studio](https://aistudio.google.com) - AI API (one required)
+  - [Firecrawl](https://cwa.run/firecrawl) - Web scraping (optional)
+  - [Sentry](https://cwa.run/sentry) - Error tracking (optional)
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/code-with-antonio/IDEON.git
+   cd IDEON
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+4. Configure your `.env.local` with the required keys:
+
+   ```env
+   # Clerk
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+   CLERK_SECRET_KEY=
+
+   # Convex
+   NEXT_PUBLIC_CONVEX_URL=
+   CONVEX_DEPLOYMENT=
+   IDEON_CONVEX_INTERNAL_KEY=  # Generate a random string
+
+   # AI Provider (choose one)
+   ANTHROPIC_API_KEY=        # Preferred - Claude Sonnet 4
+   GOOGLE_GENERATIVE_AI_API_KEY=  # Free alternative - Gemini 2.0 Flash
+
+   # Firecrawl (optional)
+   FIRECRAWL_API_KEY=
+
+   # Sentry (optional)
+   SENTRY_DSN=
+   ```
+
+5. Start the Convex development server:
+
+   ```bash
+   npx convex dev
+   ```
+
+6. In a new terminal, start the Next.js development server:
+
+   ```bash
+   npm run dev
+   ```
+
+7. In another terminal, start the Inngest dev server:
+
+   ```bash
+   npx inngest-cli@latest dev
+   ```
+
+8. Open [http://localhost:3000](http://localhost:3000)
+
+## Project Structure
 
 ```
-npm install
-npm run dev
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   │   ├── messages/      # Conversation API
+│   │   ├── suggestion/    # AI suggestions
+│   │   └── quick-edit/    # Cmd+K editing
+│   └── projects/          # Project pages
+├── components/            # Shared components
+│   ├── ui/               # shadcn/ui components
+│   └── ai-elements/      # AI conversation components
+├── features/
+│   ├── auth/             # Authentication
+│   ├── conversations/    # AI chat system
+│   ├── editor/           # CodeMirror setup
+│   │   └── extensions/   # Custom extensions
+│   ├── preview/          # WebContainer (Part 2)
+│   └── projects/         # Project management
+├── inngest/              # Inngest client
+└── lib/                  # Utilities
+
+convex/
+├── schema.ts             # Database schema
+├── projects.ts           # Project queries/mutations
+├── files.ts              # File operations
+├── conversations.ts      # Conversation operations
+└── system.ts             # Internal API for Inngest
 ```
 
-If you're reading this README on GitHub and want to use this template, run:
+## Features Implemented (Part 1)
 
+### Editor
+
+- Syntax highlighting for JS, TS, CSS, HTML, JSON, Markdown, Python
+- Line numbers and code folding
+- Minimap overview
+- Bracket matching and indentation guides
+- Multi-cursor editing
+
+### AI Features
+
+- Real-time code suggestions with ghost text
+- Quick edit with Cmd+K (select code + natural language instruction)
+- Selection tooltip for quick actions
+- Conversation sidebar with message history
+
+### File Management
+
+- File explorer with folder hierarchy
+- Create, rename, delete files and folders
+- VSCode-style file icons
+- Tab-based file navigation
+- Auto-save with debouncing
+
+### Real-time
+
+- Convex-powered instant updates
+- Optimistic UI updates
+- Background job processing with Inngest
+
+## Current Limitations (Part 1)
+
+These features are planned for Part 2:
+
+- AI agent cannot yet modify files (mock response only)
+- No message cancellation
+- No past conversations dialog
+- No code preview/execution
+- No GitHub integration
+- No AI project generation
+
+## Scripts
+
+```bash
+npm run dev       # Start development server
+npm run build     # Build for production
+npm run start     # Start production server
+npm run lint      # Run ESLint
 ```
-npm create convex@latest -- -t nextjs-clerk
-```
 
-Then:
+## Tutorial Links
 
-1. Open your app. There should be a "Claim your application" button from Clerk in the bottom right of your app.
-2. Follow the steps to claim your application and link it to this app.
-3. Follow step 3 in the [Convex Clerk onboarding guide](https://docs.convex.dev/auth/clerk#get-started) to create a Convex JWT template.
-4. Uncomment the Clerk provider in `convex/auth.config.ts`
-5. Paste the Issuer URL as `CLERK_JWT_ISSUER_DOMAIN` to your dev deployment environment variable settings on the Convex dashboard (see [docs](https://docs.convex.dev/auth/clerk#configuring-dev-and-prod-instances))
+- **YouTube Playlist:** [Coming Soon]
+- **Part 1:** Chapters 1-12
+- **Part 2:** Chapters 13-16
 
-If you want to sync Clerk user data via webhooks, check out this [example repo](https://github.com/thomasballinger/convex-clerk-users-table/).
+## Sponsors
 
-## Learn more
+A huge thank you to the sponsors who made this tutorial possible. Consider checking them out - they offer generous free tiers perfect for learning!
 
-To learn more about developing your project with Convex, check out:
+### Authentication
 
-- The [Tour of Convex](https://docs.convex.dev/get-started) for a thorough introduction to Convex principles.
-- The rest of [Convex docs](https://docs.convex.dev/) to learn about all Convex features.
-- [Stack](https://stack.convex.dev/) for in-depth articles on advanced topics.
+**[Clerk](https://cwa.run/clerk)** - Add authentication to your app in minutes, not days.
 
-## Join the community
+### Database
 
-Join thousands of developers building full-stack apps with Convex:
+**[Convex](https://cwa.run/convex)** - The real-time database that makes building collaborative apps a breeze.
 
-- Join the [Convex Discord community](https://convex.dev/community) to get help in real-time.
-- Follow [Convex on GitHub](https://github.com/get-convex/), star and contribute to the open-source implementation of Convex.
+### Background Jobs
+
+**[Inngest](https://cwa.run/inngest)** - Reliable background jobs and event-driven workflows.
+
+### Web Scraping
+
+**[Firecrawl](https://cwa.run/firecrawl)** - Turn any website into LLM-ready data.
+
+### Error Tracking
+
+**[Sentry](https://cwa.run/sentry)** - See what's broken and fix it fast.
+
+### Code Review
+
+**[CodeRabbit](https://cwa.run/coderabbit)** - AI-powered code reviews that catch bugs before your users do.
+
+## Acknowledgments
+
+- [Cursor](https://cursor.sh) - Inspiration for the project
+- [Orchids](https://orchids.app) - Inspiration for the project
+- [shadcn/ui](https://ui.shadcn.com) - UI components
+- [CodeMirror](https://codemirror.net) - Code editor
