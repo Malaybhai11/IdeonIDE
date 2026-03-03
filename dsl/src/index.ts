@@ -1,8 +1,8 @@
-import tokenize from './tokenizer/index.ts'
-import Parser from './parser/index.ts'
-import analyze from './analyzer/index.ts'
-import generate from './generator/index.ts'
-import run from './executor/index.ts'
+import tokenize from './tokenizer/index.js'
+import Parser from './parser/index.js'
+import analyze from './analyzer/index.js'
+import generate from './generator/index.js'
+import run from './executor/index.js'
 
 export function compile(src: string, debug: boolean) {
     try {

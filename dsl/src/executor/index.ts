@@ -1,9 +1,9 @@
 import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
-import type { Instruction } from '../../types/bytecodes.d.ts'
+import type { Instruction } from '../../types/bytecodes.js'
 // @ts-ignore 
-import { OpCode } from '../../types/bytecodes.d.ts'
+import { OpCode } from '../../types/bytecodes.js'
 import { exit } from 'process'
 
 export default function run(instructions: Instruction[], cwd: string = process.cwd()) {
