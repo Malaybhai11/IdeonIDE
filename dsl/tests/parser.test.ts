@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import tokenize from '../src/tokenizer/index.js'
-import Parser from '../src/parser/index.js'
+import tokenize from '../src/tokenizer/index.ts'
+import Parser from '../src/parser/index.ts'
 
 describe('Parser', () => {
     it('should parse a simple program', () => {

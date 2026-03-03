@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import generate from '../src/generator/index.js'
-import type { Program } from '../types/nodes.js'
+import generate from '../src/generator/index.ts'
+import type { Program } from '../types/nodes.d.ts'
 // @ts-ignore
-import { OpCode } from '../types/bytecodes.js'
+import { OpCode } from '../types/bytecodes.d.ts'
 
 describe('Generator', () => {
     it('should generate bytecode for a simple program', () => {

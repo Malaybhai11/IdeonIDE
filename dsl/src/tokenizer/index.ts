@@ -1,12 +1,11 @@
-import { exit } from 'process'
 import type {
     FileToken,
     ReplaceToken,
     ShellToken,
     WriteToken
-} from '../../types/token.js'
-import type Token from '../../types/token.js'
-import { isWhiteSpace, isAlpha, isUpper } from './utils.js'
+} from '../../types/token.d.ts'
+import type Token from '../../types/token.d.ts'
+import { isWhiteSpace, isAlpha, isUpper } from './utils.ts'
 
 export default function tokenize(src: string): Token[] {
     let i = 0
@@ -74,8 +73,7 @@ export default function tokenize(src: string): Token[] {
                 tokens.push({ type: 'Replace', oldString, newString } as ReplaceToken)
             }
             else {
-                console.error(`Unknown keyword: ${keyword}`)
-                exit(1)
+                throw new Error(`Unknown keyword: ${keyword}`)
             }
         } else {
              // Unexpected character
@@ -92,8 +90,7 @@ export default function tokenize(src: string): Token[] {
         }
 
         if (src[i] !== '`') {
-             console.error(`Expected backtick, got ${src[i]} at index ${i}`)
-             exit(1)
+             throw new Error(`Expected backtick, got ${src[i]} at index ${i}`)
         }
         i++ // Skip opening backtick
 
@@ -118,8 +115,7 @@ export default function tokenize(src: string): Token[] {
                 i++
             }
         }
-        console.error('Unterminated string')
-        exit(1)
+        throw new Error('Unterminated string')
     }
 
     return tokens

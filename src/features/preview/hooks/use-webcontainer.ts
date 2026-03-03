@@ -10,6 +10,9 @@ import { useFiles } from "@/features/projects/hooks/use-files";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 
+import { compile } from "@dsl/index";
+import type { Runtime } from "@dsl/../types/runtime.d.ts";
+
 // Singleton WebContainer instance
 let webcontainerInstance: WebContainer | null = null;
 let bootPromise: Promise<WebContainer> | null = null;
@@ -63,6 +66,10 @@ export const useWebContainer = ({
   // Fetch files from Convex (auto-updates on changes)
   const files = useFiles(projectId);
 
+  const appendOutput = useCallback((data: string) => {
+    setTerminalOutput((prev) => prev + data);
+  }, []);
+
   // Initial boot and mount
   useEffect(() => {
     if (!enabled || !files || files.length === 0 || hasStartedRef.current) {
@@ -76,10 +83,6 @@ export const useWebContainer = ({
         setStatus("booting");
         setError(null);
         setTerminalOutput("");
-
-        const appendOutput = (data: string) => {
-          setTerminalOutput((prev) => prev + data);
-        };
 
         const container = await getWebContainer();
         containerRef.current = container;
@@ -139,6 +142,7 @@ export const useWebContainer = ({
     restartKey,
     settings?.devCommand,
     settings?.installCommand,
+    appendOutput
   ]);
 
   // Sync file changes (hot-reload)
@@ -177,11 +181,69 @@ export const useWebContainer = ({
     setRestartKey((k) => k + 1);
   }, []);
 
+  const interprete = useCallback(async (dslCode: string) => {
+    const container = containerRef.current;
+    if (!container) {
+      throw new Error("WebContainer not initialized");
+    }
+
+    const runtime: Runtime = {
+      writeFile: async (path, content) => {
+        appendOutput(`Writing to ${path}...\n`);
+        await container.fs.writeFile(path, content);
+      },
+      readFile: async (path) => {
+        return await container.fs.readFile(path, "utf-8");
+      },
+      appendFile: async (path, content) => {
+        appendOutput(`Appending to ${path}...\n`);
+        const current = await container.fs.readFile(path, "utf-8");
+        await container.fs.writeFile(path, current + content);
+      },
+      executeShell: async (command) => {
+        appendOutput(`$ ${command}\n`);
+        const [bin, ...args] = command.split(" ");
+        const process = await container.spawn(bin!, args);
+        
+        process.output.pipeTo(
+          new WritableStream({
+            write(data) {
+              appendOutput(data);
+            },
+          })
+        );
+
+        const exitCode = await process.exit;
+        if (exitCode !== 0) {
+          throw new Error(`Command "${command}" failed with exit code ${exitCode}`);
+        }
+      },
+      exists: async (path) => {
+        try {
+          await container.fs.readFile(path);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    };
+
+    try {
+      await compile(dslCode, runtime, true);
+      appendOutput("\nDSL Execution successful!\n");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      appendOutput(`\nDSL Execution failed: ${msg}\n`);
+      throw err;
+    }
+  }, [appendOutput]);
+
   return {
     status,
     previewUrl,
     error,
     restart,
     terminalOutput,
+    interprete,
   };
 };

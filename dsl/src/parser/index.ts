@@ -1,17 +1,17 @@
-import type Token from '../../types/token.js'
+import type Token from '../../types/token.d.ts'
 import type { 
     FileToken, 
     ShellToken, 
     WriteToken, 
     ReplaceToken 
-} from '../../types/token.js'
+} from '../../types/token.d.ts'
 import type { 
     Program,
     FileContext, 
     ShellNode, 
     WriteNode, 
     ReplaceNode 
-} from '../../types/nodes.js'
+} from '../../types/nodes.d.ts'
 
 export default class Parser {
     private tokens: Token[];

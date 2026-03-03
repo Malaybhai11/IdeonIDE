@@ -1,8 +1,8 @@
-import type { Program } from '../../types/nodes.js'
-import type { Instruction } from '../../types/bytecodes.js'
+import type { Program } from '../../types/nodes.d.ts'
+import type { Instruction } from '../../types/bytecodes.d.ts'
 // @ts-ignore 
-import { OpCode } from '../../types/bytecodes.js'
-import type { FileContext, ShellNode, WriteNode, ReplaceNode } from '../../types/nodes.js'
+import { OpCode } from '../../types/bytecodes.d.ts'
+import type { FileContext, ShellNode, WriteNode, ReplaceNode } from '../../types/nodes.d.ts'
 
 export default function generate(program: Program): Instruction[] {
     const instructions: Instruction[] = [];
