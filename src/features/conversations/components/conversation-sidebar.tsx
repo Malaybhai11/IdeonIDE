@@ -5,7 +5,8 @@ import {
   CopyIcon, 
   HistoryIcon, 
   LoaderIcon, 
-  PlusIcon
+  PlusIcon,
+  PlayIcon
 } from "lucide-react";
 
 import {
@@ -41,6 +42,9 @@ import {
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DEFAULT_CONVERSATION_TITLE } from "../constants";
 import { PastConversationsDialog } from "./past-conversations-dialog";
+import { useWebContainer } from "@/features/preview/hooks/use-webcontainer";
+import { useLayoutStore } from "@/features/projects/store/use-layout-store";
+import { usePreviewStore } from "@/features/preview/store/use-preview-store";
 
 interface ConversationSidebarProps {
   projectId: Id<"projects">;
@@ -61,6 +65,8 @@ export const ConversationSidebar = ({
 
   const createConversation = useCreateConversation();
   const conversations = useConversations(projectId);
+  const { setActiveView } = useLayoutStore();
+  const { setIsTerminalOpen } = usePreviewStore();
 
   const activeConversationId =
     selectedConversationId ?? conversations?.[0]?._id ?? null;
@@ -68,10 +74,34 @@ export const ConversationSidebar = ({
   const activeConversation = useConversation(activeConversationId);
   const conversationMessages = useMessages(activeConversationId);
 
+  const { interprete } = useWebContainer({
+    projectId,
+    enabled: true,
+  });
+
   // Check if any message is currently processing
   const isProcessing = conversationMessages?.some(
     (msg) => msg.status === "processing"
   );
+
+  const handleRunDSL = async (content: string) => {
+    // Basic extraction of DSL from markdown code blocks
+    const dslMatch = content.match(/```dsl\n([\s\S]*?)```/);
+    if (!dslMatch || !dslMatch[1]) {
+      toast.error("No DSL script found in this message");
+      return;
+    }
+
+    try {
+      setActiveView("preview");
+      setIsTerminalOpen(true);
+      toast.info("Running DSL script...");
+      await interprete(dslMatch[1]);
+      toast.success("DSL script executed successfully");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "DSL Execution failed");
+    }
+  };
 
   const handleCancel = async () => {
     try {
@@ -184,6 +214,15 @@ export const ConversationSidebar = ({
                   message.status === "completed" &&
                   messageIndex === (conversationMessages?.length ?? 0) - 1 && (
                     <MessageActions>
+                      {message.content.includes("```dsl") && (
+                        <MessageAction
+                          onClick={() => handleRunDSL(message.content)}
+                          label="Run DSL"
+                          className="text-primary hover:text-primary"
+                        >
+                          <PlayIcon className="size-3 fill-current" />
+                        </MessageAction>
+                      )}
                       <MessageAction
                         onClick={() => {
                           navigator.clipboard.writeText(message.content)

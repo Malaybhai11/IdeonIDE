@@ -12,6 +12,7 @@ import {
 import { useWebContainer } from "@/features/preview/hooks/use-webcontainer";
 import { PreviewSettingsPopover } from "@/features/preview/components/preview-settings-popover";
 import { PreviewTerminal } from "@/features/preview/components/preview-terminal";
+import { usePreviewStore } from "@/features/preview/store/use-preview-store";
 
 import { Button } from "@/components/ui/button";
 
@@ -21,7 +22,7 @@ import { Id } from "../../../../convex/_generated/dataModel";
 
 export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
   const project = useProject(projectId);
-  const [showTerminal, setShowTerminal] = useState(true);
+  const { isTerminalOpen, setIsTerminalOpen } = usePreviewStore();
 
   const {
     status, previewUrl, error, restart, terminalOutput
@@ -63,7 +64,7 @@ export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
           variant="ghost"
           className="h-full rounded-none"
           title="Toggle terminal"
-          onClick={() => setShowTerminal((value) => !value)}
+          onClick={() => setIsTerminalOpen(!isTerminalOpen)}
         >
           <TerminalSquareIcon className="size-3" />
         </Button>
@@ -108,7 +109,7 @@ export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
             )}
           </Allotment.Pane>
 
-          {showTerminal && (
+          {isTerminalOpen && (
             <Allotment.Pane minSize={100} maxSize={500} preferredSize={200}>
               <div className="h-full flex flex-col bg-background border-t">
                 <div className="h-7 flex items-center px-3 text-xs gap-1.5 text-muted-foreground border-b border-border/50 shrink-0">

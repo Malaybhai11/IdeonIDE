@@ -12,6 +12,7 @@ import { Id } from "../../../../convex/_generated/dataModel";
 
 import { compile } from "@dsl/index";
 import type { Runtime } from "@dsl/../types/runtime.d.ts";
+import { usePreviewStore } from "../store/use-preview-store";
 
 // Singleton WebContainer instance
 let webcontainerInstance: WebContainer | null = null;
@@ -52,23 +53,24 @@ export const useWebContainer = ({
   enabled,
   settings,
 }: UseWebContainerProps) => {
-  const [status, setStatus] = useState<
-    "idle" | "booting" | "installing" | "running" | "error"
-  >("idle");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [restartKey, setRestartKey] = useState(0);
-  const [terminalOutput, setTerminalOutput] = useState("");
+  const {
+    status,
+    previewUrl,
+    error,
+    terminalOutput,
+    setStatus,
+    setPreviewUrl,
+    setError,
+    appendOutput,
+    clearOutput,
+  } = usePreviewStore();
 
+  const [restartKey, setRestartKey] = useState(0);
   const containerRef = useRef<WebContainer | null>(null);
   const hasStartedRef = useRef(false);
 
   // Fetch files from Convex (auto-updates on changes)
   const files = useFiles(projectId);
-
-  const appendOutput = useCallback((data: string) => {
-    setTerminalOutput((prev) => prev + data);
-  }, []);
 
   // Initial boot and mount
   useEffect(() => {
@@ -82,7 +84,7 @@ export const useWebContainer = ({
       try {
         setStatus("booting");
         setError(null);
-        setTerminalOutput("");
+        clearOutput();
 
         const container = await getWebContainer();
         containerRef.current = container;
@@ -142,7 +144,11 @@ export const useWebContainer = ({
     restartKey,
     settings?.devCommand,
     settings?.installCommand,
-    appendOutput
+    setStatus,
+    setError,
+    clearOutput,
+    appendOutput,
+    setPreviewUrl,
   ]);
 
   // Sync file changes (hot-reload)
@@ -168,7 +174,7 @@ export const useWebContainer = ({
       setPreviewUrl(null);
       setError(null);
     }
-  }, [enabled]);
+  }, [enabled, setStatus, setPreviewUrl, setError]);
 
   // Restart the entire WebContainer process
   const restart = useCallback(() => {
@@ -179,10 +185,10 @@ export const useWebContainer = ({
     setPreviewUrl(null);
     setError(null);
     setRestartKey((k) => k + 1);
-  }, []);
+  }, [setStatus, setPreviewUrl, setError]);
 
   const interprete = useCallback(async (dslCode: string) => {
-    const container = containerRef.current;
+    const container = containerRef.current || webcontainerInstance;
     if (!container) {
       throw new Error("WebContainer not initialized");
     }

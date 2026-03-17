@@ -11,6 +11,7 @@ import { FileExplorer } from "./file-explorer";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { PreviewView } from "./preview-view";
 import { ExportPopover } from "./export-popover";
+import { useLayoutStore } from "../store/use-layout-store";
 
 const MIN_SIDEBAR_WIDTH = 200;
 const MAX_SIDEBAR_WIDTH = 800;
@@ -44,7 +45,7 @@ export const ProjectIdView = ({
 }: { 
   projectId: Id<"projects">
 }) => {
-  const [activeView, setActiveView] = useState<"editor" | "preview">("editor");
+  const { activeView, setActiveView } = useLayoutStore();
 
   return (
     <div className="h-full flex flex-col">
