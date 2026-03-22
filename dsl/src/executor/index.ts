@@ -1,7 +1,7 @@
-import type { Instruction } from '../../types/bytecodes.d.ts'
+import type { Instruction } from '../../types/bytecodes'
 // @ts-ignore 
-import { OpCode } from '../../types/bytecodes.d.ts'
-import type { Runtime } from '../../types/runtime.d.ts'
+import { OpCode } from '../../types/bytecodes'
+import type { Runtime } from '../../types/runtime'
 
 export default async function run(instructions: Instruction[], runtime: Runtime) {
     let currentFile: string | null = null;

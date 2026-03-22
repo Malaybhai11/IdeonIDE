@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import tokenize from '../src/tokenizer/index.ts'
+import tokenize from '../src/tokenizer/index'
 
 describe('Tokenizer', () => {
     it('should tokenize File keyword', () => {

@@ -1,9 +1,9 @@
-import tokenize from './tokenizer/index.ts'
-import Parser from './parser/index.ts'
-import analyze from './analyzer/index.ts'
-import generate from './generator/index.ts'
-import run from './executor/index.ts'
-import type { Runtime } from '../types/runtime.d.ts'
+import tokenize from './tokenizer/index'
+import Parser from './parser/index'
+import analyze from './analyzer/index'
+import generate from './generator/index'
+import run from './executor/index'
+import type { Runtime } from '../types/runtime'
 
 export async function compile(src: string, runtime: Runtime, debug: boolean = false) {
     try {

@@ -11,7 +11,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 
 import { compile } from "@dsl/index";
-import type { Runtime } from "@dsl/../types/runtime.d.ts";
+import type { Runtime } from "@dsl/../types/runtime";
 import { usePreviewStore } from "../store/use-preview-store";
 
 // Singleton WebContainer instance

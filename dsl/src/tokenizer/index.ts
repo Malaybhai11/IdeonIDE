@@ -3,9 +3,9 @@ import type {
     ReplaceToken,
     ShellToken,
     WriteToken
-} from '../../types/token.d.ts'
-import type Token from '../../types/token.d.ts'
-import { isWhiteSpace, isAlpha, isUpper } from './utils.ts'
+} from '../../types/token'
+import type Token from '../../types/token'
+import { isWhiteSpace, isAlpha, isUpper } from './utils'
 
 export default function tokenize(src: string): Token[] {
     let i = 0
