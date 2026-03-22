@@ -197,6 +197,33 @@ export const processMessage = inngest.createFunction(
     // Run the agent
     const result = await network.run(message);
 
+    // Aggregate token usage from all steps in the run
+    const totalUsage = result.state.results.reduce(
+      (acc, res) => {
+        if (res.raw) {
+          try {
+            const raw = JSON.parse(res.raw);
+            // Most AI providers put usage in a 'usage' field
+            if (raw.usage) {
+              acc.inputTokens += raw.usage.input_tokens || raw.usage.prompt_tokens || 0;
+              acc.outputTokens += raw.usage.output_tokens || raw.usage.completion_tokens || 0;
+              if (raw.usage.cache_read_input_tokens || raw.usage.cached_prompt_tokens) {
+                 acc.cachedInputTokens = (acc.cachedInputTokens || 0) + 
+                  (raw.usage.cache_read_input_tokens || raw.usage.cached_prompt_tokens || 0);
+              }
+              if (raw.usage.thinking_tokens) {
+                acc.reasoningTokens = (acc.reasoningTokens || 0) + raw.usage.thinking_tokens;
+              }
+            }
+          } catch {
+            // Ignore parse errors
+          }
+        }
+        return acc;
+      },
+      { inputTokens: 0, outputTokens: 0, reasoningTokens: 0, cachedInputTokens: 0 }
+    );
+
     // Extract the assistant's text response from the last agent result
     const lastResult = result.state.results.at(-1);
     const textMessage = lastResult?.output.find(
@@ -219,6 +246,8 @@ export const processMessage = inngest.createFunction(
         internalKey,
         messageId,
         content: assistantResponse,
+        usage: totalUsage,
+        modelId: "anthropic:claude-3-opus-20240229", // Canonical model ID for cost calculation
       })
     });
 

@@ -40,6 +40,15 @@ export const createMessage = mutation({
         v.literal("cancelled")
       )
     ),
+    usage: v.optional(
+      v.object({
+        inputTokens: v.number(),
+        outputTokens: v.number(),
+        reasoningTokens: v.optional(v.number()),
+        cachedInputTokens: v.optional(v.number()),
+      })
+    ),
+    modelId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     validateInternalKey(args.internalKey);
@@ -50,6 +59,8 @@ export const createMessage = mutation({
       role: args.role,
       content: args.content,
       status: args.status,
+      usage: args.usage,
+      modelId: args.modelId,
     });
 
     // Update conversation's updatedAt
@@ -66,6 +77,15 @@ export const updateMessageContent = mutation({
     internalKey: v.string(),
     messageId: v.id("messages"),
     content: v.string(),
+    usage: v.optional(
+      v.object({
+        inputTokens: v.number(),
+        outputTokens: v.number(),
+        reasoningTokens: v.optional(v.number()),
+        cachedInputTokens: v.optional(v.number()),
+      })
+    ),
+    modelId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     validateInternalKey(args.internalKey);
@@ -73,6 +93,8 @@ export const updateMessageContent = mutation({
     await ctx.db.patch(args.messageId, {
       content: args.content,
       status: "completed" as const,
+      usage: args.usage,
+      modelId: args.modelId,
     });
   },
 });

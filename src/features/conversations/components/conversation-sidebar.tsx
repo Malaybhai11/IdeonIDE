@@ -22,6 +22,18 @@ import {
   MessageAction,
 } from "@/components/ai-elements/message";
 import {
+  Context,
+  ContextTrigger,
+  ContextContent,
+  ContextContentHeader,
+  ContextContentBody,
+  ContextContentFooter,
+  ContextInputUsage,
+  ContextOutputUsage,
+  ContextReasoningUsage,
+  ContextCacheUsage,
+} from "@/components/ai-elements/context";
+import {
   PromptInput,
   PromptInputBody,
   PromptInputFooter,
@@ -211,18 +223,54 @@ export const ConversationSidebar = ({
                   )}
                 </MessageContent>
                 {message.role === "assistant" &&
-                  message.status === "completed" &&
-                  messageIndex === (conversationMessages?.length ?? 0) - 1 && (
+                  message.status === "completed" && (
                     <MessageActions>
-                      {message.content.includes("```dsl") && (
-                        <MessageAction
-                          onClick={() => handleRunDSL(message.content)}
-                          label="Run DSL"
-                          className="text-primary hover:text-primary"
+                      {message.usage && (
+                        <Context
+                          usedTokens={message.usage.inputTokens + message.usage.outputTokens}
+                          maxTokens={200000} // Claude-3 context window
+                          usage={{
+                            inputTokens: message.usage.inputTokens,
+                            outputTokens: message.usage.outputTokens,
+                            reasoningTokens: message.usage.reasoningTokens,
+                            cachedInputTokens: message.usage.cachedInputTokens,
+                            inputTokenDetails: {
+                              cacheReadTokens: message.usage.cachedInputTokens,
+                              noCacheTokens: message.usage.inputTokens - (message.usage.cachedInputTokens ?? 0),
+                              cacheWriteTokens: undefined,
+                            },
+                            outputTokenDetails: {
+                              reasoningTokens: message.usage.reasoningTokens,
+                              textTokens: message.usage.outputTokens - (message.usage.reasoningTokens ?? 0),
+                            },
+                            totalTokens: message.usage.inputTokens + message.usage.outputTokens,
+                          }}
+                          modelId={message.modelId}
                         >
-                          <PlayIcon className="size-3 fill-current" />
-                        </MessageAction>
+                          <ContextTrigger className="h-6 px-1 hover:bg-transparent" />
+                          <ContextContent>
+                            <ContextContentHeader />
+                            <ContextContentBody className="space-y-1">
+                              <ContextInputUsage />
+                              <ContextOutputUsage />
+                              <ContextReasoningUsage />
+                              <ContextCacheUsage />
+                            </ContextContentBody>
+                            <ContextContentFooter />
+                          </ContextContent>
+                        </Context>
                       )}
+                      {message.content.includes("```dsl") && 
+                        messageIndex === (conversationMessages?.length ?? 0) - 1 && (
+                          <MessageAction
+                            onClick={() => handleRunDSL(message.content)}
+                            label="Run DSL"
+                            className="text-primary hover:text-primary"
+                          >
+                            <PlayIcon className="size-3 fill-current" />
+                          </MessageAction>
+                        )
+                      }
                       <MessageAction
                         onClick={() => {
                           navigator.clipboard.writeText(message.content)

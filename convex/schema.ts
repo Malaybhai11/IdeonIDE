@@ -61,6 +61,15 @@ export default defineSchema({
         v.literal("cancelled")
       )
     ),
+    usage: v.optional(
+      v.object({
+        inputTokens: v.number(),
+        outputTokens: v.number(),
+        reasoningTokens: v.optional(v.number()),
+        cachedInputTokens: v.optional(v.number()),
+      })
+    ),
+    modelId: v.optional(v.string()),
   })
     .index("by_conversation", ["conversationId"])
     .index("by_project_status", ["projectId", "status"]),
