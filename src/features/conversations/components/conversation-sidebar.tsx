@@ -6,7 +6,8 @@ import {
   HistoryIcon, 
   LoaderIcon, 
   PlusIcon,
-  PlayIcon
+  PlayIcon,
+  CoinsIcon
 } from "lucide-react";
 
 import {
@@ -43,6 +44,7 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   useConversation,
@@ -57,6 +59,7 @@ import { PastConversationsDialog } from "./past-conversations-dialog";
 import { useWebContainer } from "@/features/preview/hooks/use-webcontainer";
 import { useLayoutStore } from "@/features/projects/store/use-layout-store";
 import { usePreviewStore } from "@/features/preview/store/use-preview-store";
+import { useSettingsStore } from "../store/use-settings-store";
 
 interface ConversationSidebarProps {
   projectId: Id<"projects">;
@@ -79,6 +82,7 @@ export const ConversationSidebar = ({
   const conversations = useConversations(projectId);
   const { setActiveView } = useLayoutStore();
   const { setIsTerminalOpen } = usePreviewStore();
+  const { showTokenUsage, setShowTokenUsage } = useSettingsStore();
 
   const activeConversationId =
     selectedConversationId ?? conversations?.[0]?._id ?? null;
@@ -185,6 +189,20 @@ export const ConversationSidebar = ({
             {activeConversation?.title ?? DEFAULT_CONVERSATION_TITLE}
           </div>
           <div className="flex items-center px-1 gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant={showTokenUsage ? "highlight" : "ghost"}
+                  onClick={() => setShowTokenUsage(!showTokenUsage)}
+                >
+                  <CoinsIcon className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {showTokenUsage ? "Hide token usage" : "Show token usage"}
+              </TooltipContent>
+            </Tooltip>
             <Button
               size="icon-xs"
               variant="highlight"
@@ -225,7 +243,7 @@ export const ConversationSidebar = ({
                 {message.role === "assistant" &&
                   message.status === "completed" && (
                     <MessageActions>
-                      {message.usage && (
+                      {message.usage && showTokenUsage && (
                         <Context
                           usedTokens={message.usage.inputTokens + message.usage.outputTokens}
                           maxTokens={200000} // Claude-3 context window
