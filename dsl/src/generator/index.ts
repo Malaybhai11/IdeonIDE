@@ -1,6 +1,6 @@
 import type { Program } from '../../types/nodes'
 import type { Instruction } from '../../types/bytecodes'
-// @ts-ignore 
+// @ts-expect-error - TS-ignore-fix
 import { OpCode } from '../../types/bytecodes'
 import type { FileContext, ShellNode, WriteNode, ReplaceNode } from '../../types/nodes'
 

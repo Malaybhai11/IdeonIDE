@@ -4,6 +4,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Command,
   CommandEmpty,
@@ -37,6 +38,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ChatStatus, FileUIPart } from "ai";
 import {
@@ -313,12 +319,13 @@ export function PromptInputAttachment({
           <div className="relative size-5 shrink-0">
             <div className="absolute inset-0 flex size-5 items-center justify-center overflow-hidden rounded bg-background transition-opacity group-hover:opacity-0">
               {isImage ? (
-                <img
+                <Image
                   alt={filename || "attachment"}
                   className="size-5 object-cover"
                   height={20}
                   src={data.url}
                   width={20}
+                  unoptimized
                 />
               ) : (
                 <div className="flex size-5 items-center justify-center text-muted-foreground">
@@ -348,12 +355,13 @@ export function PromptInputAttachment({
         <div className="w-auto space-y-3">
           {isImage && (
             <div className="flex max-h-96 w-96 items-center justify-center overflow-hidden rounded-md border">
-              <img
+              <Image
                 alt={filename || "attachment preview"}
                 className="max-h-full max-w-full object-contain"
                 height={384}
                 src={data.url}
                 width={448}
+                unoptimized
               />
             </div>
           )}
@@ -669,7 +677,6 @@ export const PromptInput = ({
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- cleanup only on unmount; filesRef always current
     [usingProvider]
   );
 
@@ -729,7 +736,7 @@ export const PromptInput = ({
 
     // Convert blob URLs to data URLs asynchronously
     Promise.all(
-      files.map(async ({ id, ...item }) => {
+      files.map(async (item) => {
         if (item.url && item.url.startsWith("blob:")) {
           const dataUrl = await convertBlobUrlToDataUrl(item.url);
           // If conversion failed, keep the original blob URL
@@ -991,11 +998,18 @@ export const PromptInputActionMenuTrigger = ({
   children,
   ...props
 }: PromptInputActionMenuTriggerProps) => (
-  <DropdownMenuTrigger asChild>
-    <PromptInputButton className={className} {...props}>
-      {children ?? <PlusIcon className="size-4" />}
-    </PromptInputButton>
-  </DropdownMenuTrigger>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <DropdownMenuTrigger asChild>
+        <PromptInputButton className={className} {...props}>
+          {children ?? <PlusIcon className="size-4" />}
+        </PromptInputButton>
+      </DropdownMenuTrigger>
+    </TooltipTrigger>
+    <TooltipContent>
+      Add attachment
+    </TooltipContent>
+  </Tooltip>
 );
 
 export type PromptInputActionMenuContentProps = ComponentProps<
@@ -1043,17 +1057,26 @@ export const PromptInputSubmit = ({
     Icon = <XIcon className="size-4" />;
   }
 
+  const label = status === "streaming" ? "Stop" : "Send";
+
   return (
-    <InputGroupButton
-      aria-label="Submit"
-      className={cn(className)}
-      size={size}
-      type="submit"
-      variant={variant}
-      {...props}
-    >
-      {children ?? Icon}
-    </InputGroupButton>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <InputGroupButton
+          aria-label={label}
+          className={cn(className)}
+          size={size}
+          type="submit"
+          variant={variant}
+          {...props}
+        >
+          {children ?? Icon}
+        </InputGroupButton>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -1202,18 +1225,25 @@ export const PromptInputSpeechButton = ({
   }, [recognition, isListening]);
 
   return (
-    <PromptInputButton
-      className={cn(
-        "relative transition-all duration-200",
-        isListening && "animate-pulse bg-accent text-accent-foreground",
-        className
-      )}
-      disabled={!recognition}
-      onClick={toggleListening}
-      {...props}
-    >
-      <MicIcon className="size-4" />
-    </PromptInputButton>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <PromptInputButton
+          className={cn(
+            "relative transition-all duration-200",
+            isListening && "animate-pulse bg-accent text-accent-foreground",
+            className
+          )}
+          disabled={!recognition}
+          onClick={toggleListening}
+          {...props}
+        >
+          <MicIcon className="size-4" />
+        </PromptInputButton>
+      </TooltipTrigger>
+      <TooltipContent>
+        {isListening ? "Stop listening" : "Use voice input"}
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

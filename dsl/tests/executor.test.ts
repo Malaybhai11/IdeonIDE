@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import run from '../src/executor/index'
-// @ts-ignore
-import { OpCode } from '../types/bytecodes'
+// @ts-expect-error - TS-ignore-fix
+import { OpCode, type Instruction } from '../types/bytecodes'
 import type { Runtime } from '../types/runtime'
 import fs from 'fs'
 import path from 'path'
@@ -48,12 +48,12 @@ describe('Executor', () => {
 
     it('should write content to a file', async () => {
         const filePath = 'test.txt'
-        const instructions = [
+        const instructions: Instruction[] = [
             { op: OpCode.SET_FILE, args: [filePath] },
             { op: OpCode.WRITE_CONTENT, args: ['hello world'] }
         ]
 
-        await run(instructions as any, testRuntime)
+        await run(instructions, testRuntime)
 
         const content = fs.readFileSync(path.join(tempDir, filePath), 'utf-8')
         expect(content).toBe('hello world')
@@ -64,12 +64,12 @@ describe('Executor', () => {
         const fullPath = path.join(tempDir, filePath)
         fs.writeFileSync(fullPath, 'hello world', 'utf-8')
 
-        const instructions = [
+        const instructions: Instruction[] = [
             { op: OpCode.SET_FILE, args: [filePath] },
             { op: OpCode.REPLACE_CONTENT, args: ['world', 'vitest'] }
         ]
 
-        await run(instructions as any, testRuntime)
+        await run(instructions, testRuntime)
 
         const content = fs.readFileSync(fullPath, 'utf-8')
         expect(content).toBe('hello vitest')
@@ -80,12 +80,12 @@ describe('Executor', () => {
         const fullPath = path.join(tempDir, filePath)
         fs.writeFileSync(fullPath, 'hello', 'utf-8')
 
-        const instructions = [
+        const instructions: Instruction[] = [
             { op: OpCode.SET_FILE, args: [filePath] },
             { op: OpCode.REPLACE_CONTENT, args: ['', ' world'] }
         ]
 
-        await run(instructions as any, testRuntime)
+        await run(instructions, testRuntime)
 
         const content = fs.readFileSync(fullPath, 'utf-8')
         expect(content).toBe('hello world')
@@ -93,12 +93,12 @@ describe('Executor', () => {
 
     it('should create directories if they do not exist', async () => {
         const filePath = 'subdir/test.txt'
-        const instructions = [
+        const instructions: Instruction[] = [
             { op: OpCode.SET_FILE, args: [filePath] },
             { op: OpCode.WRITE_CONTENT, args: ['nested'] }
         ]
 
-        await run(instructions as any, testRuntime)
+        await run(instructions, testRuntime)
 
         const content = fs.readFileSync(path.join(tempDir, filePath), 'utf-8')
         expect(content).toBe('nested')

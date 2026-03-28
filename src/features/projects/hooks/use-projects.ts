@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/purity */
 
 import { useMutation, useQuery } from "convex/react";
+import ky from "ky";
 
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -82,4 +83,20 @@ export const useRenameProject = () => {
 
 export const useUpdateProjectSettings = () => {
   return useMutation(api.projects.updateSettings);
+};
+
+export const useRemoveProject = () => {
+  return useMutation(api.projects.remove);
+};
+
+export const useCancelImport = () => {
+  const mutation = useMutation(api.projects.cancelImport);
+
+  return (projectId: Id<"projects">) => {
+    return mutation({ id: projectId }).then(() => {
+      return ky.post("/api/projects/cancel-import", {
+        json: { projectId },
+      }).json();
+    });
+  };
 };

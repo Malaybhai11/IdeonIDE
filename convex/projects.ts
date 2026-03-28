@@ -121,3 +121,85 @@ export const rename = mutation({
     });
   },
 });
+
+export const remove = mutation({
+  args: {
+    id: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await verifyAuth(ctx);
+
+    const project = await ctx.db.get(args.id);
+
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    if (project.ownerId !== identity.subject) {
+      throw new Error("Unauthorized access to this project");
+    }
+
+    // Recursively delete all files in the project
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_project", (q) => q.eq("projectId", args.id))
+      .collect();
+
+    for (const file of files) {
+      if (file.storageId) {
+        await ctx.storage.delete(file.storageId);
+      }
+      await ctx.db.delete(file._id);
+    }
+
+    // Delete all conversations and messages
+    const conversations = await ctx.db
+      .query("conversations")
+      .withIndex("by_project", (q) => q.eq("projectId", args.id))
+      .collect();
+
+    for (const conversation of conversations) {
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_conversation", (q) => q.eq("conversationId", conversation._id))
+        .collect();
+
+      for (const message of messages) {
+        await ctx.db.delete(message._id);
+      }
+      await ctx.db.delete(conversation._id);
+    }
+
+    await ctx.db.delete(args.id);
+  },
+});
+
+export const cancelImport = mutation({
+  args: {
+    id: v.id("projects"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await verifyAuth(ctx);
+
+    const project = await ctx.db.get(args.id);
+
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    if (project.ownerId !== identity.subject) {
+      throw new Error("Unauthorized access to this project");
+    }
+
+    if (project.importStatus !== "importing") {
+      throw new Error("Project is not importing");
+    }
+
+    await ctx.db.patch(args.id, {
+      importStatus: "failed",
+      updatedAt: Date.now(),
+    });
+
+    return project._id;
+  },
+});

@@ -1,15 +1,21 @@
 import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
-import { AlertCircleIcon, ArrowRightIcon, GlobeIcon, Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
+import { AlertCircleIcon, ArrowRightIcon, GlobeIcon, Loader2Icon, XIcon } from "lucide-react";
 
 import { Kbd } from "@/components/ui/kbd";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
-import { Doc } from "../../../../convex/_generated/dataModel";
+import { Doc, Id } from "../../../../convex/_generated/dataModel";
 
-import { useProjectsPartial } from "../hooks/use-projects";
+import { useCancelImport, useProjectsPartial } from "../hooks/use-projects";
 
 const formatTimestamp = (timestamp: number) => {
   return formatDistanceToNow(new Date(timestamp), { 
@@ -40,15 +46,34 @@ interface ProjectsListProps {
 }
 
 const ContinueCard = ({ 
-  data
+  data,
+  onCancel,
 }: {
   data: Doc<"projects">;
+  onCancel: (id: Id<"projects">) => void;
 }) => {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs text-muted-foreground">
-        Last updated
-      </span>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          Last updated
+        </span>
+        {data.importStatus === "importing" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                onClick={() => onCancel(data._id)}
+                className="text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <XIcon className="size-3" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Cancel import
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       <Button
         variant="outline"
         asChild
@@ -74,23 +99,42 @@ const ContinueCard = ({
 };
 
 const ProjectItem = ({ 
-  data
+  data,
+  onCancel,
 }: {
   data: Doc<"projects">;
+  onCancel: (id: Id<"projects">) => void;
 }) => {
   return (
-    <Link 
-      href={`/projects/${data._id}`}
-      className="text-sm text-foreground/60 font-medium hover:text-foreground py-1 flex items-center justify-between w-full group"
-    >
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between w-full group">
+      <Link 
+        href={`/projects/${data._id}`}
+        className="text-sm text-foreground/60 font-medium hover:text-foreground py-1 flex items-center gap-2 flex-1 truncate"
+      >
         {getProjectIcon(data)}
         <span className="truncate">{data.name}</span>
+      </Link>
+      <div className="flex items-center gap-2">
+        {data.importStatus === "importing" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                onClick={() => onCancel(data._id)}
+                className="text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <XIcon className="size-3" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Cancel import
+            </TooltipContent>
+          </Tooltip>
+        )}
+        <span className="text-xs text-muted-foreground group-hover:text-foreground/60 transition-colors">
+          {formatTimestamp(data.updatedAt)}
+        </span>
       </div>
-      <span className="text-xs text-muted-foreground group-hover:text-foreground/60 transition-colors">
-        {formatTimestamp(data.updatedAt)}
-      </span>
-    </Link>
+    </div>
   );
 };
 
@@ -98,6 +142,15 @@ export const ProjectsList = ({
   onViewAll
 }: ProjectsListProps) => {
   const projects = useProjectsPartial(6);
+  const cancelImport = useCancelImport();
+
+  const handleCancel = async (id: Id<"projects">) => {
+    toast.promise(cancelImport(id), {
+      loading: "Cancelling import...",
+      success: "Import cancelled",
+      error: "Failed to cancel import",
+    });
+  };
 
   if (projects === undefined) {
     return <Spinner className="size-4 text-ring" />
@@ -107,7 +160,7 @@ export const ProjectsList = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {mostRecent ? <ContinueCard data={mostRecent} /> : null}
+      {mostRecent ? <ContinueCard data={mostRecent} onCancel={handleCancel} /> : null}
       {rest.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
@@ -129,6 +182,7 @@ export const ProjectsList = ({
               <ProjectItem
                 key={project._id}
                 data={project}
+                onCancel={handleCancel}
               />
             ))}
           </ul>

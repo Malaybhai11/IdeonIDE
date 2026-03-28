@@ -203,20 +203,34 @@ export const ConversationSidebar = ({
                 {showTokenUsage ? "Hide token usage" : "Show token usage"}
               </TooltipContent>
             </Tooltip>
-            <Button
-              size="icon-xs"
-              variant="highlight"
-              onClick={() => setPastConversationsOpen(true)}
-            >
-              <HistoryIcon className="size-3.5" />
-            </Button>
-            <Button
-              size="icon-xs"
-              variant="highlight"
-              onClick={handleCreateConversation}
-            >
-              <PlusIcon className="size-3.5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant="highlight"
+                  onClick={() => setPastConversationsOpen(true)}
+                >
+                  <HistoryIcon className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                History
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant="highlight"
+                  onClick={handleCreateConversation}
+                >
+                  <PlusIcon className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                New conversation
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <Conversation className="flex-1">
@@ -282,7 +296,7 @@ export const ConversationSidebar = ({
                         messageIndex === (conversationMessages?.length ?? 0) - 1 && (
                           <MessageAction
                             onClick={() => handleRunDSL(message.content)}
-                            label="Run DSL"
+                            tooltip="Run DSL"
                             className="text-primary hover:text-primary"
                           >
                             <PlayIcon className="size-3 fill-current" />
@@ -293,7 +307,7 @@ export const ConversationSidebar = ({
                         onClick={() => {
                           navigator.clipboard.writeText(message.content)
                         }}
-                        label="Copy"
+                        tooltip="Copy"
                       >
                         <CopyIcon className="size-3" />
                       </MessageAction>

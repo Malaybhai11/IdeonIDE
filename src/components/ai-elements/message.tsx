@@ -20,7 +20,8 @@ import {
   XIcon,
 } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
-import { createContext, memo, useContext, useEffect, useState } from "react";
+import Image from "next/image";
+import { createContext, memo, useContext, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -76,6 +77,7 @@ export type MessageActionProps = ComponentProps<typeof Button> & {
 };
 
 export const MessageAction = ({
+  className,
   tooltip,
   children,
   label,
@@ -84,19 +86,21 @@ export const MessageAction = ({
   ...props
 }: MessageActionProps) => {
   const button = (
-    <Button size={size} type="button" variant={variant} {...props}>
+    <Button className={className} size={size} type="button" variant={variant} {...props}>
       {children}
       <span className="sr-only">{label || tooltip}</span>
     </Button>
   );
 
-  if (tooltip) {
+  const tooltipText = tooltip || label;
+
+  if (tooltipText) {
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
           <TooltipContent>
-            <p>{tooltip}</p>
+            <p>{tooltipText}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -188,7 +192,9 @@ export const MessageBranchContent = ({
   ...props
 }: MessageBranchContentProps) => {
   const { currentBranch, setBranches, branches } = useMessageBranch();
-  const childrenArray = Array.isArray(children) ? children : [children];
+  const childrenArray = useMemo(() => {
+    return Array.isArray(children) ? children : [children];
+  }, [children]);
 
   // Use useEffect to update branches when they change
   useEffect(() => {
@@ -211,15 +217,9 @@ export const MessageBranchContent = ({
   ));
 };
 
-export type MessageBranchSelectorProps = HTMLAttributes<HTMLDivElement> & {
-  from: UIMessage["role"];
-};
+export type MessageBranchSelectorProps = HTMLAttributes<HTMLDivElement>;
 
-export const MessageBranchSelector = ({
-  className,
-  from,
-  ...props
-}: MessageBranchSelectorProps) => {
+export const MessageBranchSelector = (props: MessageBranchSelectorProps) => {
   const { totalBranches } = useMessageBranch();
 
   // Don't render if there's only one branch
@@ -245,17 +245,26 @@ export const MessageBranchPrevious = ({
   const { goToPrevious, totalBranches } = useMessageBranch();
 
   return (
-    <Button
-      aria-label="Previous branch"
-      disabled={totalBranches <= 1}
-      onClick={goToPrevious}
-      size="icon-sm"
-      type="button"
-      variant="ghost"
-      {...props}
-    >
-      {children ?? <ChevronLeftIcon size={14} />}
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            aria-label="Previous branch"
+            disabled={totalBranches <= 1}
+            onClick={goToPrevious}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+            {...props}
+          >
+            {children ?? <ChevronLeftIcon size={14} />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Previous branch
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
@@ -263,23 +272,31 @@ export type MessageBranchNextProps = ComponentProps<typeof Button>;
 
 export const MessageBranchNext = ({
   children,
-  className,
   ...props
 }: MessageBranchNextProps) => {
   const { goToNext, totalBranches } = useMessageBranch();
 
   return (
-    <Button
-      aria-label="Next branch"
-      disabled={totalBranches <= 1}
-      onClick={goToNext}
-      size="icon-sm"
-      type="button"
-      variant="ghost"
-      {...props}
-    >
-      {children ?? <ChevronRightIcon size={14} />}
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            aria-label="Next branch"
+            disabled={totalBranches <= 1}
+            onClick={goToNext}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+            {...props}
+          >
+            {children ?? <ChevronRightIcon size={14} />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Next branch
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
@@ -330,7 +347,6 @@ export type MessageAttachmentProps = HTMLAttributes<HTMLDivElement> & {
 
 export function MessageAttachment({
   data,
-  className,
   onRemove,
   ...props
 }: MessageAttachmentProps) {
@@ -342,20 +358,18 @@ export function MessageAttachment({
 
   return (
     <div
-      className={cn(
-        "group relative size-24 overflow-hidden rounded-lg",
-        className
-      )}
+      className="group relative size-24 overflow-hidden rounded-lg"
       {...props}
     >
       {isImage ? (
         <>
-          <img
+          <Image
             alt={filename || "attachment"}
             className="size-full object-cover"
             height={100}
             src={data.url}
             width={100}
+            unoptimized
           />
           {onRemove && (
             <Button
@@ -433,15 +447,11 @@ export function MessageAttachments({
 export type MessageToolbarProps = ComponentProps<"div">;
 
 export const MessageToolbar = ({
-  className,
   children,
   ...props
 }: MessageToolbarProps) => (
   <div
-    className={cn(
-      "mt-4 flex w-full items-center justify-between gap-4",
-      className
-    )}
+    className="mt-4 flex w-full items-center justify-between gap-4"
     {...props}
   >
     {children}

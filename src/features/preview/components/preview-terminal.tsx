@@ -52,9 +52,7 @@ export const PreviewTerminal = ({ output }: PreviewTerminalProps) => {
       terminalRef.current = null;
       fitAddonRef.current = null;
     };
-    // "output" does not need to be a dependency since it is not intended
-    // to update anything, just used on mount
-  }, []);
+  }, [output]);
 
   // Write output
   useEffect(() => {

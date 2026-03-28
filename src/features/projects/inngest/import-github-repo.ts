@@ -19,6 +19,12 @@ interface ImportGithubRepoEvent {
 export const importGithubRepo = inngest.createFunction(
   {
     id: "import-github-repo",
+    cancelOn: [
+      {
+        event: "github/import.cancel",
+        if: "event.data.projectId == async.data.projectId",
+      },
+    ],
     onFailure: async ({ event, step }) => {
       const internalKey = process.env.IDEON_CONVEX_INTERNAL_KEY;
       if (!internalKey) return;

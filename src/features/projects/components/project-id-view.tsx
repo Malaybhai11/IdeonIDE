@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { Allotment } from "allotment";
-import { FaGithub } from "react-icons/fa";
 
 import { cn } from "@/lib/utils";
 import { EditorView } from "@/features/editor/components/editor-view";

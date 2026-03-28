@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import { SparkleIcon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -67,7 +68,13 @@ export const ProjectsView = () => {
           <div className="flex justify-between gap-4 w-full items-center">
 
             <div className="flex items-center gap-2 w-full group/logo">
-              <img src="/logo.svg" alt="IDEON" className="size-[32px] md:size-[46px]" />
+              <Image 
+                src="/logo.svg" 
+                alt="IDEON" 
+                className="size-[32px] md:size-[46px]" 
+                width={46} 
+                height={46} 
+              />
               <h1 className={cn(
                 "text-4xl md:text-5xl font-semibold",
                 font.className,

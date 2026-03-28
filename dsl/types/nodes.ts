@@ -1,5 +1,3 @@
-import type { Token } from './token.js'
-
 export type NodeType = 'Program' | 'FileContext' | 'ShellNode' | 'WriteNode' | 'ReplaceNode';
 
 export interface ASTNode {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import generate from '../src/generator/index'
 import type { Program } from '../types/nodes'
-// @ts-ignore
+// @ts-expect-error - TS-ignore-fix
 import { OpCode } from '../types/bytecodes'
 
 describe('Generator', () => {

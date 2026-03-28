@@ -1,5 +1,5 @@
 import type { Instruction } from '../../types/bytecodes'
-// @ts-ignore 
+// @ts-expect-error - TS-ignore-fix
 import { OpCode } from '../../types/bytecodes'
 import type { Runtime } from '../../types/runtime'
 

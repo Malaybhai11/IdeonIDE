@@ -1,6 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ArrowDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
@@ -82,19 +88,28 @@ export const ConversationScrollButton = ({
 
   return (
     !isAtBottom && (
-      <Button
-        className={cn(
-          "absolute bottom-4 left-[50%] translate-x-[-50%] rounded-full",
-          className
-        )}
-        onClick={handleScrollToBottom}
-        size="icon"
-        type="button"
-        variant="outline"
-        {...props}
-      >
-        <ArrowDownIcon className="size-4" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className={cn(
+                "absolute bottom-4 left-[50%] translate-x-[-50%] rounded-full",
+                className
+              )}
+              onClick={handleScrollToBottom}
+              size="icon"
+              type="button"
+              variant="outline"
+              {...props}
+            >
+              <ArrowDownIcon className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Scroll to bottom
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     )
   );
 };
