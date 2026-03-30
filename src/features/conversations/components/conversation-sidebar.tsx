@@ -7,7 +7,8 @@ import {
   LoaderIcon, 
   PlusIcon,
   PlayIcon,
-  CoinsIcon
+  CoinsIcon,
+  SettingsIcon
 } from "lucide-react";
 
 import {
@@ -56,6 +57,7 @@ import {
 import { Id } from "../../../../convex/_generated/dataModel";
 import { DEFAULT_CONVERSATION_TITLE } from "../constants";
 import { PastConversationsDialog } from "./past-conversations-dialog";
+import { SettingsDialog } from "./settings-dialog";
 import { useWebContainer } from "@/features/preview/hooks/use-webcontainer";
 import { useLayoutStore } from "@/features/projects/store/use-layout-store";
 import { usePreviewStore } from "@/features/preview/store/use-preview-store";
@@ -77,12 +79,21 @@ export const ConversationSidebar = ({
     pastConversationsOpen,
     setPastConversationsOpen
   ] = useState(false);
+  const [
+    settingsOpen,
+    setSettingsOpen,
+  ] = useState(false);
 
   const createConversation = useCreateConversation();
   const conversations = useConversations(projectId);
   const { setActiveView } = useLayoutStore();
   const { setIsTerminalOpen } = usePreviewStore();
-  const { showTokenUsage, setShowTokenUsage } = useSettingsStore();
+  const { 
+    showTokenUsage, 
+    setShowTokenUsage,
+    activeProvider,
+    apiKeys,
+  } = useSettingsStore();
 
   const activeConversationId =
     selectedConversationId ?? conversations?.[0]?._id ?? null;
@@ -166,6 +177,8 @@ export const ConversationSidebar = ({
         json: {
           conversationId,
           message: message.text,
+          provider: activeProvider,
+          apiKey: apiKeys[activeProvider],
         },
       });
     } catch {
@@ -182,6 +195,10 @@ export const ConversationSidebar = ({
         open={pastConversationsOpen}
         onOpenChange={setPastConversationsOpen}
         onSelect={setSelectedConversationId}
+      />
+      <SettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
       />
       <div className="flex flex-col h-full bg-sidebar">
         <div className="h-8.75 flex items-center justify-between border-b">
@@ -201,6 +218,20 @@ export const ConversationSidebar = ({
               </TooltipTrigger>
               <TooltipContent>
                 {showTokenUsage ? "Hide token usage" : "Show token usage"}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon-xs"
+                  variant="highlight"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <SettingsIcon className="size-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                AI Settings
               </TooltipContent>
             </Tooltip>
             <Tooltip>

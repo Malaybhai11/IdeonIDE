@@ -54,7 +54,7 @@ export const ProjectIdView = ({
           onClick={() => setActiveView("editor")}
         />
         <Tab
-          label="Preview"
+          label="Terminal"
           isActive={activeView === "preview"}
           onClick={() => setActiveView("preview")}
         />

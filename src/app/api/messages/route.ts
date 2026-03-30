@@ -11,6 +11,8 @@ import { Id } from "../../../../convex/_generated/dataModel";
 const requestSchema = z.object({
   conversationId: z.string(),
   message: z.string(),
+  provider: z.enum(["anthropic", "google"]).optional(),
+  apiKey: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -30,7 +32,12 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { conversationId, message } = requestSchema.parse(body);
+  const { 
+    conversationId, 
+    message,
+    provider,
+    apiKey,
+  } = requestSchema.parse(body);
 
   // Call convex mutation, query
   const conversation = await convex.query(api.system.getConversationById, {
@@ -106,6 +113,8 @@ export async function POST(request: Request) {
       conversationId,
       projectId,
       message,
+      provider,
+      apiKey,
     },
   });
 

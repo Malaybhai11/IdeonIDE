@@ -56,7 +56,7 @@ export const FileExplorer = ({
 
   return (
     <div className="h-full bg-sidebar">
-      <ScrollArea>
+      <ScrollArea className="h-full">
         <div
           role="button"
           onClick={() => setIsOpen((value) => !value)}

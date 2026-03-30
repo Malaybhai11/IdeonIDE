@@ -1,4 +1,5 @@
 import { createAgent, anthropic, createNetwork } from '@inngest/agent-kit';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 import { inngest } from "@/inngest/client";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -24,6 +25,8 @@ interface MessageEvent {
   conversationId: Id<"conversations">;
   projectId: Id<"projects">;
   message: string;
+  provider?: "anthropic" | "google";
+  apiKey?: string;
 };
 
 export const processMessage = inngest.createFunction(
@@ -60,7 +63,9 @@ export const processMessage = inngest.createFunction(
       messageId, 
       conversationId,
       projectId,
-      message
+      message,
+      provider: userProvider,
+      apiKey: userApiKey,
     } = event.data as MessageEvent;
 
     const internalKey = process.env.IDEON_CONVEX_INTERNAL_KEY; 
@@ -68,6 +73,26 @@ export const processMessage = inngest.createFunction(
     if (!internalKey) {
       throw new NonRetriableError("IDEON_CONVEX_INTERNAL_KEY is not configured");
     }
+
+    // Determine which provider to use
+    const getModel = () => {
+      if (userProvider === "google" && userApiKey) {
+        const googleProvider = createGoogleGenerativeAI({ apiKey: userApiKey });
+        return googleProvider("gemini-3.1-flash");
+      }
+      
+      if (userProvider === "anthropic" && userApiKey) {
+        return anthropic({ 
+          apiKey: userApiKey,
+          model: "claude-sonnet-4.6" 
+        });
+      }
+
+      // Default to internal Anthropic key if nothing else is provided
+      return anthropic("claude-sonnet-4.6");
+    };
+
+    const model = getModel();
 
     // TODO: Check if this is needed
     await step.sleep("wait-for-db-sync", "1s");
@@ -117,10 +142,7 @@ export const processMessage = inngest.createFunction(
        const titleAgent = createAgent({
         name: "title-generator",
         system: TITLE_GENERATOR_SYSTEM_PROMPT,
-        model: anthropic({
-          model: "claude-3-5-haiku-20241022",
-          defaultParameters: { temperature: 0, max_tokens: 50 },
-        }),
+        model,
        });
 
        const { output } = await titleAgent.run(message, { step });
@@ -155,10 +177,7 @@ export const processMessage = inngest.createFunction(
       name: "IDEON",
       description: "An expert AI coding assistant",
       system: systemPrompt,
-       model: anthropic({
-        model: "claude-opus-4-20250514",
-        defaultParameters: { temperature: 0.3, max_tokens: 16000 }
-       }),
+       model,
        tools: [
         createListFilesTool({ internalKey, projectId }),
         createReadFilesTool({ internalKey }),
