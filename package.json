@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "dev": "next dev",
+    "dev:all": "concurrently -n \"next,convex,inngest\" -c \"cyan,magenta,blue\" \"npm run dev\" \"npx convex dev\" \"npx inngest-cli@latest dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -106,6 +107,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
