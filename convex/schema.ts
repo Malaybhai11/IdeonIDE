@@ -73,4 +73,13 @@ export default defineSchema({
   })
     .index("by_conversation", ["conversationId"])
     .index("by_project_status", ["projectId", "status"]),
+
+  userSettings: defineTable({
+    userId: v.string(),
+    activeProvider: v.union(v.literal("anthropic"), v.literal("google")),
+    anthropicKeyEncrypted: v.optional(v.string()),
+    anthropicKeyIv: v.optional(v.string()),
+    googleKeyEncrypted: v.optional(v.string()),
+    googleKeyIv: v.optional(v.string()),
+  }).index("by_user", ["userId"]),
 });

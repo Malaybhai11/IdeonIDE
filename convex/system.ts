@@ -14,6 +14,57 @@ const validateInternalKey = (key: string) => {
   }
 };
 
+export const getUserSettings = query({
+  args: {
+    internalKey: v.string(),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    return await ctx.db
+      .query("userSettings")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+  },
+});
+
+export const updateUserSettings = mutation({
+  args: {
+    internalKey: v.string(),
+    userId: v.string(),
+    activeProvider: v.union(v.literal("anthropic"), v.literal("google")),
+    anthropicKeyEncrypted: v.optional(v.string()),
+    anthropicKeyIv: v.optional(v.string()),
+    googleKeyEncrypted: v.optional(v.string()),
+    googleKeyIv: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    validateInternalKey(args.internalKey);
+
+    const existing = await ctx.db
+      .query("userSettings")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+
+    const settings = {
+      userId: args.userId,
+      activeProvider: args.activeProvider,
+      anthropicKeyEncrypted: args.anthropicKeyEncrypted,
+      anthropicKeyIv: args.anthropicKeyIv,
+      googleKeyEncrypted: args.googleKeyEncrypted,
+      googleKeyIv: args.googleKeyIv,
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, settings);
+      return existing._id;
+    } else {
+      return await ctx.db.insert("userSettings", settings);
+    }
+  },
+});
+
 export const getConversationById = query({
   args: {
     conversationId: v.id("conversations"),

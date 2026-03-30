@@ -91,8 +91,6 @@ export const ConversationSidebar = ({
   const { 
     showTokenUsage, 
     setShowTokenUsage,
-    activeProvider,
-    apiKeys,
   } = useSettingsStore();
 
   const activeConversationId =
@@ -177,8 +175,6 @@ export const ConversationSidebar = ({
         json: {
           conversationId,
           message: message.text,
-          provider: activeProvider,
-          apiKey: apiKeys[activeProvider],
         },
       });
     } catch {

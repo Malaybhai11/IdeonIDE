@@ -5,6 +5,7 @@ import { inngest } from "@/inngest/client";
 import { Id } from "../../../../convex/_generated/dataModel";
 import { NonRetriableError } from "inngest";
 import { convex } from "@/lib/convex-client";
+import { decrypt } from "@/lib/encryption";
 import { api } from "../../../../convex/_generated/api";
 import { 
   CODING_AGENT_SYSTEM_PROMPT, 
@@ -25,8 +26,7 @@ interface MessageEvent {
   conversationId: Id<"conversations">;
   projectId: Id<"projects">;
   message: string;
-  provider?: "anthropic" | "google";
-  apiKey?: string;
+  userId: string;
 };
 
 export const processMessage = inngest.createFunction(
@@ -64,8 +64,7 @@ export const processMessage = inngest.createFunction(
       conversationId,
       projectId,
       message,
-      provider: userProvider,
-      apiKey: userApiKey,
+      userId,
     } = event.data as MessageEvent;
 
     const internalKey = process.env.IDEON_CONVEX_INTERNAL_KEY; 
@@ -74,16 +73,28 @@ export const processMessage = inngest.createFunction(
       throw new NonRetriableError("IDEON_CONVEX_INTERNAL_KEY is not configured");
     }
 
-    // Determine which provider to use
+    // Get user settings (vaulted keys)
+    const userSettings = await step.run("get-user-settings", async () => {
+      return await convex.query(api.system.getUserSettings, {
+        internalKey,
+        userId,
+      });
+    });
+
+    // Determine which provider to use and decrypt key
     const getModel = () => {
-      if (userProvider === "google" && userApiKey) {
-        const googleProvider = createGoogleGenerativeAI({ apiKey: userApiKey });
+      const provider = userSettings?.activeProvider ?? "anthropic";
+
+      if (provider === "google" && userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv) {
+        const decryptedKey = decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv);
+        const googleProvider = createGoogleGenerativeAI({ apiKey: decryptedKey });
         return googleProvider("gemini-3.1-flash");
       }
       
-      if (userProvider === "anthropic" && userApiKey) {
+      if (provider === "anthropic" && userSettings?.anthropicKeyEncrypted && userSettings?.anthropicKeyIv) {
+        const decryptedKey = decrypt(userSettings.anthropicKeyEncrypted, userSettings.anthropicKeyIv);
         return anthropic({ 
-          apiKey: userApiKey,
+          apiKey: decryptedKey,
           model: "claude-sonnet-4.6" 
         });
       }
