@@ -1,90 +1,51 @@
-# Welcome to your Convex functions directory!
+# Convex Backend
 
-Write your Convex functions here.
-See https://docs.convex.dev/functions for more.
+This directory contains the Convex functions and schema that power the real-time capabilities of IDEON. Convex acts as our database, serverless function provider, and real-time synchronization layer.
 
-A query function that takes two arguments looks like:
+## Core Concepts
 
-```ts
-// convex/myFunctions.ts
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+- **Real-time Sync:** All data in Convex is automatically pushed to the frontend, ensuring a seamless collaborative experience.
+- **Optimistic Updates:** Frontend mutations provide immediate UI feedback while the backend processes the request.
+- **Serverless Logic:** Business logic is encapsulated in queries and mutations, removing the need for a traditional REST API for most operations.
 
-export const myQueryFunction = query({
-  // Validators for arguments.
-  args: {
-    first: v.number(),
-    second: v.string(),
-  },
+## Schema Overview (`schema.ts`)
 
-  // Function implementation.
-  handler: async (ctx, args) => {
-    // Read the database as many times as you need here.
-    // See https://docs.convex.dev/database/reading-data.
-    const documents = await ctx.db.query("tablename").collect();
+The project uses a structured relational schema tailored for an IDE:
 
-    // Arguments passed from the client are properties of the args object.
-    console.log(args.first, args.second);
+- **`projects`**: Stores project metadata, owners, and settings (including build/dev commands).
+- **`files`**: A hierarchical file system structure. Supports both text content (stored directly) and binary files (via `_storage`).
+- **`conversations`**: Groups AI messages into logical chat sessions associated with a project.
+- **`messages`**: Individual AI or User messages with status tracking and token usage metadata.
 
-    // Write arbitrary JavaScript here: filter, aggregate, build derived data,
-    // remove non-public properties, or create new objects.
-    return documents;
-  },
-});
+## Directory Structure
+
+- **`_generated/`**: Auto-generated Convex types and client code (do not edit).
+- **`projects.ts`**: CRUD operations for managing user projects.
+- **`files.ts`**: High-performance file system operations (create, move, delete, update).
+- **`conversations.ts`**: Logic for managing AI chat sessions and message history.
+- **`system.ts`**: Internal-only functions used by background jobs (Inngest) for system-level operations.
+- **`auth.ts`**: Integration with Clerk for secure, identity-aware backend functions.
+
+## Development
+
+To start the Convex development server and sync your functions:
+
+```bash
+npx convex dev
 ```
 
-Using this query function in a React component looks like:
+This will:
+1. Provide you with a local dashboard URL to inspect your data.
+2. Synchronize your local function changes to the Convex cloud (or local dev environment).
+3. Generate type-safe client code in `_generated/`.
 
-```ts
-const data = useQuery(api.myFunctions.myQueryFunction, {
-  first: 10,
-  second: "hello",
-});
-```
+## Key Patterns
 
-A mutation function looks like:
+### Identity Verification
+Most functions use `ctx.auth.getUserIdentity()` to ensure that users can only access or modify their own projects.
 
-```ts
-// convex/myFunctions.ts
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+### Indexing
+We use custom indexes (e.g., `by_project`, `by_parent`) to ensure that file tree traversal and message retrieval remain fast even as the database grows.
 
-export const myMutationFunction = mutation({
-  // Validators for arguments.
-  args: {
-    first: v.string(),
-    second: v.string(),
-  },
-
-  // Function implementation.
-  handler: async (ctx, args) => {
-    // Insert or modify documents in the database here.
-    // Mutations can also read from the database like queries.
-    // See https://docs.convex.dev/database/writing-data.
-    const message = { body: args.first, author: args.second };
-    const id = await ctx.db.insert("messages", message);
-
-    // Optionally, return a value from your mutation.
-    return await ctx.db.get("messages", id);
-  },
-});
-```
-
-Using this mutation function in a React component looks like:
-
-```ts
-const mutation = useMutation(api.myFunctions.myMutationFunction);
-function handleButtonPress() {
-  // fire and forget, the most common way to use mutations
-  mutation({ first: "Hello!", second: "me" });
-  // OR
-  // use the result once the mutation has completed
-  mutation({ first: "Hello!", second: "me" }).then((result) =>
-    console.log(result),
-  );
-}
-```
-
-Use the Convex CLI to push your functions to a deployment. See everything
-the Convex CLI can do by running `npx convex -h` in your project root
-directory. To learn more, launch the docs with `npx convex docs`.
+---
+*Built with Convex - The Full-stack TypeScript Platform.*
