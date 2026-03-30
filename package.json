@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "dev:all": "concurrently -n \"next,convex,inngest\" -c \"cyan,magenta,blue\" \"npm run dev\" \"npx convex dev\" \"npx inngest-cli@latest dev\"",
+    "dev:all": "concurrently -n \"next,convex,inngest\" -c \"#FF9933,white,green\" \"npm run dev\" \"npx convex dev\" \"npx inngest-cli@latest dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
