@@ -25,7 +25,10 @@ export const PreviewTerminal = ({ output }: PreviewTerminalProps) => {
       disableStdin: true,
       fontSize: 12,
       fontFamily: "monospace",
-      theme: { background: "#1f2228" },
+      theme: { 
+        background: "#0a0a0a", // Match oklch(0.145 0 0)
+        foreground: "#e5e5e5", // Match oklch(0.9 0 0)
+      },
     });
 
     const fitAddon = new FitAddon();
