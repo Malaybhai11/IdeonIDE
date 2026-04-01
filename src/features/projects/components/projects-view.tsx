@@ -5,15 +5,19 @@ import { SparkleIcon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useAuth } from "@clerk/nextjs";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
+import { ProjectsOnboardingGate } from "@/features/onboarding/components/projects-onboarding-gate";
+import { useOnboardingStore } from "@/features/onboarding/store/use-onboarding-store";
 
 import { ProjectsList } from "./projects-list";
 import { ProjectsCommandDialog } from "./projects-command-dialog";
 import { ImportGithubDialog } from "./import-github-dialog";
 import { NewProjectDialog } from "./new-project-dialog";
+import { useProjects } from "../hooks/use-projects";
 
 const font = Poppins({
   subsets: ["latin"],
@@ -21,9 +25,25 @@ const font = Poppins({
 })
 
 export const ProjectsView = () => {
+  const { userId } = useAuth();
   const [commandDialogOpen, setCommandDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
+  const projects = useProjects();
+
+  const hasHydrated = useOnboardingStore((state) => state.hasHydrated);
+  const onboardingEntry = useOnboardingStore(
+    (state) => state.entries[userId ?? ""]
+  );
+  const dismissOnboarding = useOnboardingStore(
+    (state) => state.dismissOnboarding
+  );
+  const markWelcomeSeen = useOnboardingStore(
+    (state) => state.markWelcomeSeen
+  );
+  const queueWorkspaceTour = useOnboardingStore(
+    (state) => state.queueWorkspaceTour
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -47,9 +67,54 @@ export const ProjectsView = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const shouldShowWelcomeGate =
+    Boolean(userId) &&
+    hasHydrated &&
+    projects !== undefined &&
+    projects.length === 0 &&
+    onboardingEntry === undefined;
+
+  const handleSkipWelcome = () => {
+    if (!userId) return;
+    dismissOnboarding(userId);
+  };
+
+  const handleWelcomeCreate = () => {
+    if (userId) {
+      markWelcomeSeen(userId);
+    }
+    setNewProjectDialogOpen(true);
+  };
+
+  const handleWelcomeImport = () => {
+    if (userId) {
+      markWelcomeSeen(userId);
+    }
+    setImportDialogOpen(true);
+  };
+
+  const handleProjectCreated = (projectId: string) => {
+    if (!userId) {
+      return;
+    }
+
+    const currentStatus =
+      useOnboardingStore.getState().entries[userId]?.status;
+
+    if (currentStatus === "welcome_seen" || currentStatus === "workspace_started") {
+      queueWorkspaceTour(userId, projectId);
+    }
+  };
+
 
   return (
     <>
+      <ProjectsOnboardingGate
+        open={shouldShowWelcomeGate}
+        onCreateProject={handleWelcomeCreate}
+        onImportProject={handleWelcomeImport}
+        onSkip={handleSkipWelcome}
+      />
       <ProjectsCommandDialog
         open={commandDialogOpen}
         onOpenChange={setCommandDialogOpen}
@@ -57,10 +122,12 @@ export const ProjectsView = () => {
       <ImportGithubDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
+        onProjectCreated={handleProjectCreated}
       />
       <NewProjectDialog
         open={newProjectDialogOpen}
         onOpenChange={setNewProjectDialogOpen}
+        onProjectCreated={handleProjectCreated}
       />
       <div className="min-h-screen bg-sidebar flex flex-col items-center justify-center p-6 md:p-16">
         <div className="w-full max-w-sm mx-auto flex flex-col gap-4 items-center">

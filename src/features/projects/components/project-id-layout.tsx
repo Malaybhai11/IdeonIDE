@@ -3,6 +3,7 @@
 import { Allotment } from "allotment";
 
 import { ConversationSidebar } from "@/features/conversations/components/conversation-sidebar";
+import { WorkspaceOnboardingTour } from "@/features/onboarding/components/workspace-onboarding-tour";
 
 import { Navbar } from "./navbar";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -43,6 +44,7 @@ export const ProjectIdLayout = ({
           </Allotment.Pane>
         </Allotment>
       </div>
+      <WorkspaceOnboardingTour projectId={projectId} />
     </div>
   );
 };

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { getHTTPErrorMessage } from "@/lib/http-error";
 
 import { Id } from "../../../../convex/_generated/dataModel";
 
@@ -26,11 +27,13 @@ const formSchema = z.object({
 interface ImportGithubDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProjectCreated?: (projectId: Id<"projects">) => void;
 }
 
 export const ImportGithubDialog = ({
   open,
   onOpenChange,
+  onProjectCreated,
 }: ImportGithubDialogProps) => {
   const router = useRouter();
   const { openUserProfile } = useClerk();
@@ -57,12 +60,14 @@ export const ImportGithubDialog = ({
         toast.success("Importing repository...");
         onOpenChange(false);
         form.reset();
+        onProjectCreated?.(projectId);
 
         router.push(`/projects/${projectId}`);
       } catch (error) {
         if (error instanceof HTTPError) {
-          const body = await error.response.json<{ error: string }>();
-          if (body.error?.includes("Pro plan required")) {
+          const errorMessage = await getHTTPErrorMessage(error);
+
+          if (errorMessage?.includes("Pro plan required")) {
             toast.error("Upgrade to import repositories", {
               action: {
                 label: "Upgrade",
@@ -73,7 +78,7 @@ export const ImportGithubDialog = ({
             return;
           }
 
-          if (body.error?.includes("GitHub not connected")) {
+          if (errorMessage?.includes("GitHub not connected")) {
             toast.error("GitHub account not connected", {
               action: {
                 label: "Connect",

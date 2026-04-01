@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getHTTPErrorMessage } from "@/lib/http-error";
 
 import { useProject } from "../hooks/use-projects";
 
@@ -84,8 +85,9 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
         toast.success("Export started...");
       } catch (error) {
         if (error instanceof HTTPError) {
-          const body = await error.response.json<{ error: string }>();
-          if (body.error?.includes("Pro plan required")) {
+          const errorMessage = await getHTTPErrorMessage(error);
+
+          if (errorMessage?.includes("Pro plan required")) {
             toast.error("Upgrade to import repositories", {
               action: {
                 label: "Upgrade",
@@ -96,7 +98,7 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
             return;
           }
 
-          if (body.error?.includes("GitHub not connected")) {
+          if (errorMessage?.includes("GitHub not connected")) {
             toast.error("GitHub account not connected", {
               action: {
                 label: "Connect",
@@ -320,7 +322,10 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-center gap-1.5 h-full px-3 cursor-pointer text-muted-foreground border-l hover:bg-accent/30">
+        <div
+          className="flex items-center gap-1.5 h-full px-3 cursor-pointer text-muted-foreground border-l hover:bg-accent/30"
+          data-tour="export-project"
+        >
           {getStatusIcon()}
           <span className="text-sm">Export</span>
         </div>

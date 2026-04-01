@@ -28,11 +28,13 @@ import { Id } from "../../../../convex/_generated/dataModel";
 interface NewProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProjectCreated?: (projectId: Id<"projects">) => void;
 }
 
 export const NewProjectDialog = ({
   open,
   onOpenChange,
+  onProjectCreated,
 }: NewProjectDialogProps) => {
   const router = useRouter();
   const [input, setInput] = useState("");
@@ -53,6 +55,7 @@ export const NewProjectDialog = ({
       toast.success("Project created");
       onOpenChange(false);
       setInput("");
+      onProjectCreated?.(projectId);
       router.push(`/projects/${projectId}`);
     } catch {
       toast.error("Unable to create project");
