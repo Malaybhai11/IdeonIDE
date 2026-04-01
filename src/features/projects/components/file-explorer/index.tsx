@@ -60,7 +60,7 @@ export const FileExplorer = ({
         <div
           role="button"
           onClick={() => setIsOpen((value) => !value)}
-          className="group/project cursor-pointer w-full text-left flex items-center gap-0.5 h-5.5 bg-accent font-bold"
+          className="group/project cursor-pointer w-full text-left flex items-center gap-0.5 h-5.5 bg-muted/40 font-bold"
         >
           <ChevronRightIcon
             className={cn(
