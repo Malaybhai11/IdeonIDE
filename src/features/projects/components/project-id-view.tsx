@@ -48,16 +48,18 @@ export const ProjectIdView = ({
   return (
     <div className="h-full flex flex-col">
       <nav className="h-8.75 flex items-center bg-sidebar border-b">
-        <Tab
-          label="Code"
-          isActive={activeView === "editor"}
-          onClick={() => setActiveView("editor")}
-        />
-        <Tab
-          label="Terminal"
-          isActive={activeView === "preview"}
-          onClick={() => setActiveView("preview")}
-        />
+        <div className="flex h-full" data-tour="workspace-tabs">
+          <Tab
+            label="Code"
+            isActive={activeView === "editor"}
+            onClick={() => setActiveView("editor")}
+          />
+          <Tab
+            label="Terminal"
+            isActive={activeView === "preview"}
+            onClick={() => setActiveView("preview")}
+          />
+        </div>
         <div className="flex-1 flex justify-end h-full">
           <ExportPopover projectId={projectId} />
         </div>

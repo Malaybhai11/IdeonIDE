@@ -27,11 +27,13 @@ const formSchema = z.object({
 interface ImportGithubDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProjectCreated?: (projectId: Id<"projects">) => void;
 }
 
 export const ImportGithubDialog = ({
   open,
   onOpenChange,
+  onProjectCreated,
 }: ImportGithubDialogProps) => {
   const router = useRouter();
   const { openUserProfile } = useClerk();
@@ -70,11 +72,36 @@ export const ImportGithubDialog = ({
         toast.success("Import scheduled...");
         onOpenChange(false);
         form.reset();
+        onProjectCreated?.(projectId);
 
         router.push(`/projects/${projectId}`);
       } catch (error) {
         console.error(error);
-        toast.error(error instanceof Error ? error.message : "Unable to import repository");
+        const errorMessage = error instanceof Error ? error.message : "Unable to import repository";
+
+        if (errorMessage.includes("Pro plan required")) {
+          toast.error("Upgrade to import repositories", {
+            action: {
+              label: "Upgrade",
+              onClick: () => openUserProfile(),
+            },
+          });
+          onOpenChange(false);
+          return;
+        }
+
+        if (errorMessage.includes("GitHub not connected") || errorMessage.includes("GitHub account is connected")) {
+          toast.error("GitHub account not connected", {
+            action: {
+              label: "Connect",
+              onClick: () => openUserProfile(),
+            },
+          });
+          onOpenChange(false);
+          return;
+        }
+
+        toast.error(errorMessage);
       }
     },
   });

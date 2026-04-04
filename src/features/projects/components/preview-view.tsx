@@ -35,7 +35,10 @@ export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      <div className="h-8.75 flex items-center border-b bg-sidebar shrink-0">
+      <div
+        className="h-8.75 flex items-center border-b bg-sidebar shrink-0"
+        data-tour="preview-toolbar"
+      >
         <Button
           size="sm"
           variant="ghost"

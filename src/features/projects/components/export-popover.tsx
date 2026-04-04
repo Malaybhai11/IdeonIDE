@@ -84,7 +84,32 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
 
         toast.success("Export started...");
       } catch (error) {
-        toast.error("Unable to export repository");
+        console.error(error);
+        const errorMessage = error instanceof Error ? error.message : "Unable to export repository";
+
+        if (errorMessage.includes("Pro plan required")) {
+          toast.error("Upgrade to export repositories", {
+            action: {
+              label: "Upgrade",
+              onClick: () => openUserProfile(),
+            },
+          });
+          setOpen(false);
+          return;
+        }
+
+        if (errorMessage.includes("GitHub not connected") || errorMessage.includes("GitHub account is connected")) {
+          toast.error("GitHub account not connected", {
+            action: {
+              label: "Connect",
+              onClick: () => openUserProfile(),
+            },
+          });
+          setOpen(false);
+          return;
+        }
+
+        toast.error(errorMessage);
       }
     },
   });
@@ -294,7 +319,10 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex items-center gap-1.5 h-full px-3 cursor-pointer text-muted-foreground border-l hover:bg-accent/30">
+        <div
+          className="flex items-center gap-1.5 h-full px-3 cursor-pointer text-muted-foreground border-l hover:bg-accent/30"
+          data-tour="export-project"
+        >
           {getStatusIcon()}
           <span className="text-sm">Export</span>
         </div>

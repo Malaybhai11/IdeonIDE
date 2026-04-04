@@ -222,6 +222,7 @@ export const ConversationSidebar = ({
                   size="icon-xs"
                   variant="highlight"
                   onClick={() => setSettingsOpen(true)}
+                  data-tour="conversation-settings"
                 >
                   <SettingsIcon className="size-3.5" />
                 </Button>
@@ -350,6 +351,7 @@ export const ConversationSidebar = ({
           <PromptInput 
             onSubmit={handleSubmit}
             className="mt-2"
+            data-tour="conversation-input"
           >
             <PromptInputBody>
               <PromptInputTextarea

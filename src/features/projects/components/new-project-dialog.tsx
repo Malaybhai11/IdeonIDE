@@ -27,11 +27,13 @@ import {
 interface NewProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onProjectCreated?: (projectId: Id<"projects">) => void;
 }
 
 export const NewProjectDialog = ({
   open,
   onOpenChange,
+  onProjectCreated,
 }: NewProjectDialogProps) => {
   const router = useRouter();
   const createWithPrompt = useMutation(api.projects.createWithPrompt);
@@ -51,6 +53,7 @@ export const NewProjectDialog = ({
       toast.success("Project created");
       onOpenChange(false);
       setInput("");
+      onProjectCreated?.(projectId);
       router.push(`/projects/${projectId}`);
     } catch {
       toast.error("Unable to create project");

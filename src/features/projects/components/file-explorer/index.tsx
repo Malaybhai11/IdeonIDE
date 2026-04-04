@@ -55,7 +55,7 @@ export const FileExplorer = ({
   };
 
   return (
-    <div className="h-full bg-sidebar">
+    <div className="h-full bg-sidebar" data-tour="file-explorer">
       <ScrollArea className="h-full">
         <div
           role="button"
