@@ -112,6 +112,15 @@ export const FileExplorer = ({
         {isOpen && (
           <>
             {rootFiles === undefined && <LoadingRow level={0} />}
+            {rootFiles !== undefined && rootFiles.length === 0 && !creating && (
+              <div className="px-6 py-4 text-xs text-muted-foreground italic">
+                {project?.importStatus === "importing" 
+                  ? "Importing repository..." 
+                  : project?.importStatus === "failed"
+                    ? "Import failed. Please try again."
+                    : "No files found in this project."}
+              </div>
+            )}
             {creating && (
               <CreateInput
                 type={creating}
@@ -128,6 +137,11 @@ export const FileExplorer = ({
                 projectId={projectId}
               />
             ))}
+            {rootFiles !== undefined && rootFiles.length > 0 && project?.importStatus === "importing" && (
+              <div className="px-6 py-2">
+                <LoadingRow level={0} />
+              </div>
+            )}
           </>
         )}
       </ScrollArea>

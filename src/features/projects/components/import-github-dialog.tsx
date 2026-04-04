@@ -1,9 +1,12 @@
-import ky, { HTTPError } from "ky";
+"use client";
+
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { useClerk } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
+import { useMutation, useAction } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 
-import { Id } from "../../../../convex/_generated/dataModel";
-
 const formSchema = z.object({
-  url: z.url("Please enter a valid URL"),
+  url: z.string().url("Please enter a valid URL"),
 });
 
 interface ImportGithubDialogProps {
@@ -34,6 +35,8 @@ export const ImportGithubDialog = ({
 }: ImportGithubDialogProps) => {
   const router = useRouter();
   const { openUserProfile } = useClerk();
+  const { user } = useUser();
+  const importFromGithub = useMutation(api.projects.importFromGithub);
 
   const form = useForm({
     defaultValues: {
@@ -44,47 +47,34 @@ export const ImportGithubDialog = ({
     },
     onSubmit: async ({ value }) => {
       try {
-        const { projectId } = await ky
-          .post("/api/github/import", {
-            json: { url: value.url },
-          })
-          .json<{ 
-            success: boolean; 
-            projectId: Id<"projects">,
-            eventId: string;
-          }>()
+        if (!user) {
+          throw new Error("You must be logged in to import a repository");
+        }
 
-        toast.success("Importing repository...");
+        const url = new URL(value.url);
+        const parts = url.pathname.split("/").filter(Boolean);
+        const owner = parts[0];
+        const repo = parts[1]?.replace(/\.git$/, "");
+
+        if (!owner || !repo) {
+          throw new Error("Invalid GitHub URL. Expected format: https://github.com/owner/repo");
+        }
+
+        // Trigger mutation which handles scheduling the action
+        const projectId = await importFromGithub({
+          name: repo,
+          owner,
+          repo,
+        });
+
+        toast.success("Import scheduled...");
         onOpenChange(false);
         form.reset();
 
         router.push(`/projects/${projectId}`);
       } catch (error) {
-        if (error instanceof HTTPError) {
-          const body = await error.response.json<{ error: string }>();
-          if (body.error?.includes("Pro plan required")) {
-            toast.error("Upgrade to import repositories", {
-              action: {
-                label: "Upgrade",
-                onClick: () => openUserProfile(),
-              },
-            });
-            onOpenChange(false);
-            return;
-          }
-
-          if (body.error?.includes("GitHub not connected")) {
-            toast.error("GitHub account not connected", {
-              action: {
-                label: "Connect",
-                onClick: () => openUserProfile(),
-              },
-            });
-            onOpenChange(false);
-            return;
-          }
-        }
-        toast.error("Unable to import repository. Please check the URL and try again");
+        console.error(error);
+        toast.error(error instanceof Error ? error.message : "Unable to import repository");
       }
     },
   });
@@ -105,47 +95,43 @@ export const ImportGithubDialog = ({
             form.handleSubmit();
           }}
         >
-          <form.Field name="url">
-            {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
+          <div className="space-y-4 py-4">
+            <form.Field name="url">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
 
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    Repository URL
-                  </FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    aria-invalid={isInvalid}
-                    placeholder="https://github.com/owner/repo"
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          </form.Field>
-          <DialogFooter className="mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Repository URL</FieldLabel>
+                    <Input
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                      placeholder="https://github.com/owner/repo"
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
+          </div>
+          <DialogFooter>
             <form.Subscribe
               selector={(state) => [state.canSubmit, state.isSubmitting]}
             >
               {([canSubmit, isSubmitting]) => (
-                <Button 
+                <Button
                   type="submit"
                   disabled={!canSubmit || isSubmitting}
+                  className="w-full"
                 >
-                  {isSubmitting ? "Importing..." : "Import"}
+                  {isSubmitting ? "Importing..." : "Import Repository"}
                 </Button>
               )}
             </form.Subscribe>

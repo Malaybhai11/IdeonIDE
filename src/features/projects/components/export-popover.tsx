@@ -1,9 +1,10 @@
 import React from "react";
-import ky, { HTTPError } from "ky";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useForm } from "@tanstack/react-form";
 import { useClerk } from "@clerk/nextjs";
+import { useMutation, useAction } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import { FaGithub } from "react-icons/fa";
 import {
   CheckCheckIcon,
@@ -57,6 +58,9 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
   const [open, setOpen] = React.useState(false);
   const { openUserProfile } = useClerk();
 
+  const exportToGithubAction = useAction(api.github.exportToGithub);
+  const resetExportStatusMutation = useMutation(api.projects.resetExportStatus);
+
   const exportStatus = project?.exportStatus;
   const exportRepoUrl = project?.exportRepoUrl;
 
@@ -71,57 +75,27 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
     },
     onSubmit: async ({ value }) => {
       try {
-        await ky
-          .post("/api/github/export", {
-            json: {
-              projectId,
-              repoName: value.repoName,
-              visibility: value.visibility,
-              description: value.description || undefined,
-            },
-          })
+        exportToGithubAction({
+          projectId,
+          repoName: value.repoName,
+          visibility: value.visibility,
+          description: value.description || undefined,
+        });
 
         toast.success("Export started...");
       } catch (error) {
-        if (error instanceof HTTPError) {
-          const body = await error.response.json<{ error: string }>();
-          if (body.error?.includes("Pro plan required")) {
-            toast.error("Upgrade to import repositories", {
-              action: {
-                label: "Upgrade",
-                onClick: () => openUserProfile(),
-              },
-            });
-            setOpen(false);
-            return;
-          }
-
-          if (body.error?.includes("GitHub not connected")) {
-            toast.error("GitHub account not connected", {
-              action: {
-                label: "Connect",
-                onClick: () => openUserProfile(),
-              },
-            });
-            setOpen(false);
-            return;
-          }
-        }
         toast.error("Unable to export repository");
       }
     },
   });
 
   const handleCancelExport = async () => {
-    await ky.post("/api/github/export/cancel", {
-      json: { projectId },
-    });
+    // For now, we just reset the status locally
+    await resetExportStatusMutation({ projectId });
   };
 
   const handleResetExport = async () => {
-    await ky.post("/api/github/export/reset", {
-      json: { projectId },
-    });
+    await resetExportStatusMutation({ projectId });
     setOpen(false);
   };
 

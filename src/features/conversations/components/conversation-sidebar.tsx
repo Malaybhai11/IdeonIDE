@@ -52,6 +52,7 @@ import {
   useConversations,
   useCreateConversation,
   useMessages,
+  useMessagesActions,
 } from "../hooks/use-conversations";
 
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -86,6 +87,7 @@ export const ConversationSidebar = ({
 
   const createConversation = useCreateConversation();
   const conversations = useConversations(projectId);
+  const { send } = useMessagesActions();
   const { setActiveView } = useLayoutStore();
   const { setIsTerminalOpen } = usePreviewStore();
   const { 
@@ -169,13 +171,11 @@ export const ConversationSidebar = ({
       }
     }
 
-    // Trigger Inngest function via API
+    // Trigger message processing via Convex Action
     try {
-      await ky.post("/api/messages", {
-        json: {
-          conversationId,
-          message: message.text,
-        },
+      await send({
+        conversationId,
+        content: message.text,
       });
     } catch {
       toast.error("Message failed to send");

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 import { useFile, useUpdateFile } from "@/features/projects/hooks/use-files";
+import { useProject } from "@/features/projects/hooks/use-projects";
 
 import { CodeEditor } from "./code-editor";
 import { useEditor } from "../hooks/use-editor";
@@ -14,6 +15,7 @@ const DEBOUNCE_MS = 1500;
 
 export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
   const { activeTabId } = useEditor(projectId);
+  const project = useProject(projectId);
   const activeFile = useFile(activeTabId);
   const updateFile = useUpdateFile();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +54,7 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
           <CodeEditor
             key={activeFile._id}
             fileName={activeFile.name}
+            userId={project?.ownerId}
             initialValue={activeFile.content}
             onChange={(content: string) => {
               if (timeoutRef.current) {
@@ -78,3 +81,4 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
     </div>
   );
 };
+

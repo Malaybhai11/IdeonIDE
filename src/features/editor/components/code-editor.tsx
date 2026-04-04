@@ -14,12 +14,14 @@ import { selectionTooltip } from "../extensions/selection-tooltip";
 
 interface Props {
   fileName: string;
+  userId?: string;
   initialValue?: string;
   onChange: (value: string) => void;
 }
 
 export const CodeEditor = ({ 
   fileName, 
+  userId,
   initialValue = "",
   onChange
 }: Props) => {
@@ -41,8 +43,8 @@ export const CodeEditor = ({
         customTheme,
         customSetup,
         languageExtension,
-        suggestion(fileName),
-        quickEdit(fileName),
+        suggestion(fileName, userId),
+        quickEdit(fileName, userId),
         selectionTooltip(),
         keymap.of([indentWithTab]),
         minimap(),

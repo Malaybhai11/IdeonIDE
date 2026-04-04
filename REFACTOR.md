@@ -63,10 +63,13 @@ The transition from HTTP polling to WebSocket-based state management enables:
 ## Execution Roadmap
 
 ### Phase 1: Orchestration Migration
+
 Re-implement core logic from `src/features/*/inngest/` as stateless Convex Actions. This includes porting the LLM reasoning loops and GitHub integration logic.
 
 ### Phase 2: Reactivity Layer
+
 Implement character-level streaming and token usage tracking using internal Convex mutations within the newly created Actions, ensuring the `messages` and `projects` tables are updated in real-time.
 
 ### Phase 3: Infrastructure Deprecation
+
 Decommission the `/api/inngest` endpoint and the associated Inngest feature modules. All AI and project management triggers will transition to the unified WebSocket interface, fully eliminating the "proxy-based polling" architecture.

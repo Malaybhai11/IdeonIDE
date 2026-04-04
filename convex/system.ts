@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 
 const validateInternalKey = (key: string) => {
   const internalKey = process.env.IDEON_CONVEX_INTERNAL_KEY;
@@ -599,7 +599,7 @@ export const updateImportStatus = mutation({
   handler: async (ctx, args) => {
     validateInternalKey(args.internalKey);
 
-    await ctx.db.patch("projects", args.projectId, {
+    await ctx.db.patch(args.projectId, {
       importStatus: args.status,
       updatedAt: Date.now(),
     });
@@ -623,7 +623,7 @@ export const updateExportStatus = mutation({
   handler: async (ctx, args) => {
     validateInternalKey(args.internalKey);
 
-    await ctx.db.patch("projects", args.projectId, {
+    await ctx.db.patch(args.projectId, {
       exportStatus: args.status,
       exportRepoUrl: args.repoUrl,
       updatedAt: Date.now(),

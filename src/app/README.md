@@ -10,25 +10,16 @@ This directory contains the main application routing logic and API endpoints usi
 - `projects/`: Dynamic route for project workspaces (`/projects/[projectId]`).
 - `api/`: Backend API endpoints.
 
-## API Endpoints
+## Service Layer
 
-### AI Services
-
-- **`api/messages`**: Handles AI conversation history and message stream processing.
-- **`api/suggestion`**: Provides real-time code completion ("ghost text") as users type.
-- **`api/quick-edit`**: Powers the "Quick Edit" (Cmd+K) feature for targeted code modifications.
-
-### System & Integration
-
-- **`api/github`**: Manages GitHub OAuth, repository imports, and code exports.
-- **`api/inngest`**: Webhook endpoint for Inngest background job processing.
-- **`api/projects`**: Internal endpoints for project configuration and metadata updates.
+- **Convex Actions**: AI services (messages, suggestions, quick-edits) and integrations (GitHub) are managed as **Convex Actions**. These are triggered directly via WebSocket for low-latency, real-time streaming and bidirectional state synchronization.
+- **`api/settings`**: Dynamic settings retrieval for AI provider configurations.
 
 ## Key Patterns
 
-- **Edge Runtime**: Many AI-driven API routes use the Next.js Edge Runtime for lower latency and better streaming performance.
+- **Convex Actions**: Core AI-driven operations (reasoning, streaming, file management) are now orchestrated via **Convex Actions** over WebSocket, replacing the previous HTTP-based polling model.
 - **Auth Protection**: Routes are protected by Clerk Middleware.
-- **Convex Integration**: Backend interactions are mostly performed through Convex mutations and queries triggered from the frontend, but the `/api` directory handles operations that require third-party integrations (LLMs, GitHub).
+- **Persistence**: Backend interactions are performed through Convex mutations and queries triggered from the frontend.
 
 ---
 *Navigating the IDEON experience.*

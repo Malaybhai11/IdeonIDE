@@ -1,5 +1,5 @@
 import { Tooltip, showTooltip, keymap, EditorView } from "@codemirror/view";
-import { StateField, EditorState, StateEffect } from "@codemirror/state";
+import { StateField, EditorState, StateEffect, Facet } from "@codemirror/state";
 
 import { fetcher } from "./fetcher";
 
@@ -7,6 +7,10 @@ export const showQuickEditEffect = StateEffect.define<boolean>();
 
 let editorView: EditorView | null = null;
 let currentAbortController: AbortController | null = null;
+
+const userIdFacet = Facet.define<string | undefined, string | undefined>({
+  combine: values => values[0]
+});
 
 export const quickEditState = StateField.define<boolean>({
   create() {
@@ -40,6 +44,8 @@ const createQuickEditTooltip = (state: EditorState): readonly Tooltip[] => {
   if (!isQuickEditActive) {
     return [];
   }
+
+  const userId = state.facet(userIdFacet);
 
   return [
     {
@@ -90,7 +96,7 @@ const createQuickEditTooltip = (state: EditorState): readonly Tooltip[] => {
         form.onsubmit = async (e) => {
           e.preventDefault();
 
-          if (!editorView) return;
+          if (!editorView || !userId) return;
 
           const instruction = input.value.trim();
           if (!instruction) return;
@@ -111,6 +117,7 @@ const createQuickEditTooltip = (state: EditorState): readonly Tooltip[] => {
               selectedCode,
               fullCode,
               instruction,
+              userId,
             },
             currentAbortController.signal
           );
@@ -194,7 +201,8 @@ const captureViewExtension = EditorView.updateListener.of((update) => {
   editorView = update.view;
 });
 
-export const quickEdit = (_fileName: string) => [
+export const quickEdit = (_fileName: string, userId?: string) => [
+  userIdFacet.of(userId),
   quickEditState,
   quickEditTooltipField,
   quickEditKeymap,

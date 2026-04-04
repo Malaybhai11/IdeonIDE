@@ -89,7 +89,7 @@ const generatePayload = (view: EditorView, fileName: string) => {
   }
 }
 
-const createDebouncePlugin = (fileName: string) => {
+const createDebouncePlugin = (fileName: string, userId?: string) => {
   return ViewPlugin.fromClass(
     class {
       constructor(view: EditorView) {
@@ -111,6 +111,8 @@ const createDebouncePlugin = (fileName: string) => {
           currentAbortController.abort();
         }
 
+        if (!userId) return;
+
         isWaitingForSuggestion = true;
 
         debounceTimer = window.setTimeout(async () => {
@@ -122,7 +124,7 @@ const createDebouncePlugin = (fileName: string) => {
           }
           currentAbortController = new AbortController();
           const suggestion = await fetcher(
-            payload,
+            { ...payload, userId },
             currentAbortController.signal
           );
 
@@ -215,9 +217,9 @@ const acceptSuggestionKeymap = keymap.of([
   },
 ]);
 
-export const suggestion = (fileName: string) => [
+export const suggestion = (fileName: string, userId?: string) => [
   suggestionState, // Our state storage
-  createDebouncePlugin(fileName), // Triggers suggestions on typing
+  createDebouncePlugin(fileName, userId), // Triggers suggestions on typing
   renderPlugin, // Renders the ghost text
   acceptSuggestionKeymap, // Tab to accept
 ];

@@ -1,6 +1,7 @@
-import ky from "ky";
 import { z } from "zod";
 import { toast } from "sonner";
+import { convex } from "@/lib/convex-client";
+import { api } from "../../../../../convex/_generated/api";
 
 const suggestionRequestSchema = z.object({
   fileName: z.string(),
@@ -11,14 +12,10 @@ const suggestionRequestSchema = z.object({
   textAfterCursor: z.string(),
   nextLines: z.string(),
   lineNumber: z.number(),
-});
-
-const suggestionResponseSchema = z.object({
-  suggestion: z.string(),
+  userId: z.string(),
 });
 
 type SuggestionRequest = z.infer<typeof suggestionRequestSchema>;
-type SuggestionResponse = z.infer<typeof suggestionResponseSchema>;
 
 export const fetcher = async (
   payload: SuggestionRequest,
@@ -27,23 +24,15 @@ export const fetcher = async (
   try {
     const validatedPayload = suggestionRequestSchema.parse(payload);
 
-    const response = await ky
-      .post("/api/suggestion", {
-        json: validatedPayload,
-        signal,
-        timeout: 10_000,
-        retry: 0,
-      })
-      .json<SuggestionResponse>();
+    // Call Convex Action directly
+    const suggestion = await convex.action(api.ai.generateSuggestion, validatedPayload);
 
-    const validatedResponse = suggestionResponseSchema.parse(response);
-
-    return validatedResponse.suggestion || null;
+    return suggestion || null;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       return null;
     }
-    toast.error("Failed to fetch AI completion");
+    console.error("Failed to fetch AI completion", error);
     return null;
   }
 };

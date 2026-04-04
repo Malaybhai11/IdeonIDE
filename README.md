@@ -19,7 +19,7 @@ IDEON leverages modern web technologies to provide a smooth, VSCode-like experie
 | ------------- | ------------------------------------------------------------- |
 | **Frontend**  | Next.js 16, React 19, TypeScript, Tailwind CSS 4              |
 | **Editor**    | CodeMirror 6, custom extensions, One Dark Theme               |
-| **Backend**   | Convex (Real-time DB), Inngest (Background Jobs)              |
+| **Backend**   | Convex (Real-time DB & Actions)              |
 | **AI**        | Claude Sonnet 4 / Gemini 2.0 Flash Integration               |
 | **Auth**      | Clerk (GitHub OAuth)                                          |
 | **Execution** | WebContainer API, xterm.js                                    |
@@ -31,7 +31,7 @@ IDEON leverages modern web technologies to provide a smooth, VSCode-like experie
 
 - Node.js 20.09+
 - npm or pnpm
-- API keys for Clerk, Convex, Inngest, and internal AI providers.
+- API keys for Clerk, Convex, and internal AI providers.
 
 ### Installation
 
@@ -50,18 +50,11 @@ IDEON leverages modern web technologies to provide a smooth, VSCode-like experie
    ```bash
    cp .env.example .env.local
    ```
-   *Fill in the required keys for Clerk, Convex, Inngest, and your chosen AI provider.*
+   *Fill in the required keys for Clerk, Convex, and your chosen AI provider.*
 
 4. Launch the Development Environment:
    ```bash
-   # Terminal 1: Backend service
-   npx convex dev
-
-   # Terminal 2: Background jobs
-   npx inngest-cli@latest dev
-
-   # Terminal 3: Frontend
-   npm run dev
+   npm run dev:all
    ```
 
 5. Open [http://localhost:3000](http://localhost:3000)
@@ -70,11 +63,10 @@ IDEON leverages modern web technologies to provide a smooth, VSCode-like experie
 
 Explore the dedicated READMEs in each major directory for technical deep dives:
 
-- [`/convex`](/convex/README.md) - Real-time database schema and backend serverless logic.
+- [`/convex`](/convex/README.md) - Real-time database schema, backend serverless logic, and AI Actions.
 - [`/src/app`](/src/app/README.md) - Routing structure and AI-driven API endpoints.
 - [`/src/features`](/src/features/README.md) - Domain-specific modules (Editor, AI, Auth).
 - [`/src/components`](/src/components/README.md) - Shared UI library and styling patterns.
-- [`/src/inngest`](/src/inngest/README.md) - Background job workflows and event-driven logic.
 - [`/dsl`](/dsl/README.md) - The project's internal Domain Specific Language for AI operations.
 
 ## Roadmap

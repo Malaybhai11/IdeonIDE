@@ -11,7 +11,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const identity = await verifyAuth(ctx);
 
-    const project = await ctx.db.get("projects", args.projectId);
+    const project = await ctx.db.get(args.projectId);
 
     if (!project) {
       throw new Error("Project not found");
@@ -38,13 +38,13 @@ export const getById = query({
   handler: async (ctx, args) => {
     const identity = await verifyAuth(ctx);
 
-    const conversation = await ctx.db.get("conversations", args.id);
+    const conversation = await ctx.db.get(args.id);
 
     if (!conversation) {
       throw new Error("Conversation not found");
     }
 
-    const project = await ctx.db.get("projects", conversation.projectId);
+    const project = await ctx.db.get(conversation.projectId);
 
     if (!project) {
       throw new Error("Project not found");
@@ -65,7 +65,7 @@ export const getByProject = query({
   handler: async (ctx, args) => {
     const identity = await verifyAuth(ctx);
 
-    const project = await ctx.db.get("projects", args.projectId);
+    const project = await ctx.db.get(args.projectId);
 
     if (!project) {
       throw new Error("Project not found");
@@ -90,13 +90,13 @@ export const getMessages = query({
   handler: async (ctx, args) => {
     const identity = await verifyAuth(ctx);
 
-    const conversation = await ctx.db.get("conversations", args.conversationId);
+    const conversation = await ctx.db.get(args.conversationId);
 
     if (!conversation) {
       throw new Error("Conversation not found");
     }
 
-    const project = await ctx.db.get("projects", conversation.projectId);
+    const project = await ctx.db.get(conversation.projectId);
 
     if (!project) {
       throw new Error("Project not found");

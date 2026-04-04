@@ -21,3 +21,10 @@ export const useConversations = (projectId: Id<"projects">) => {
 export const useCreateConversation = () => {
   return useMutation(api.conversations.create);
 };
+
+export const useMessagesActions = () => {
+  const send = useMutation(api.messages.send);
+  const cancel = useMutation(api.messages.cancel);
+
+  return { send, cancel };
+};

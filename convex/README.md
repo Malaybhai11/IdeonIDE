@@ -23,7 +23,7 @@ The project uses a structured relational schema tailored for an IDE:
 - **`projects.ts`**: CRUD operations for managing user projects.
 - **`files.ts`**: High-performance file system operations (create, move, delete, update).
 - **`conversations.ts`**: Logic for managing AI chat sessions and message history.
-- **`system.ts`**: Internal-only functions used by background jobs (Inngest) for system-level operations.
+- **`system.ts`**: Internal-only functions used for system-level operations and secure data access.
 - **`auth.ts`**: Integration with Clerk for secure, identity-aware backend functions.
 
 ## Development

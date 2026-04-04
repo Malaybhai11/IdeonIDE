@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import ky from "ky";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 import {
   Dialog,
@@ -23,8 +24,6 @@ import {
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 
-import { Id } from "../../../../convex/_generated/dataModel";
-
 interface NewProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,6 +34,7 @@ export const NewProjectDialog = ({
   onOpenChange,
 }: NewProjectDialogProps) => {
   const router = useRouter();
+  const createWithPrompt = useMutation(api.projects.createWithPrompt);
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,11 +44,9 @@ export const NewProjectDialog = ({
     setIsSubmitting(true);
 
     try {
-      const { projectId } = await ky
-        .post("/api/projects/create-with-prompt", {
-          json: { prompt: message.text.trim() },
-        })
-        .json<{ projectId: Id<"projects"> }>();
+      const projectId = await createWithPrompt({
+        prompt: message.text.trim(),
+      });
 
       toast.success("Project created");
       onOpenChange(false);

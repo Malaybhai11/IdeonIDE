@@ -1,11 +1,13 @@
-import ky from "ky";
 import { z } from "zod";
 import { toast } from "sonner";
+import { convex } from "@/lib/convex-client";
+import { api } from "../../../../../convex/_generated/api";
 
 const editRequestSchema = z.object({
   selectedCode: z.string(),
   fullCode: z.string(),
   instruction: z.string(),
+  userId: z.string(),
 });
 
 const editResponseSchema = z.object({
@@ -13,7 +15,6 @@ const editResponseSchema = z.object({
 });
 
 type EditRequest = z.infer<typeof editRequestSchema>;
-type EditResponse = z.infer<typeof editResponseSchema>;
 
 export const fetcher = async (
   payload: EditRequest,
@@ -22,23 +23,15 @@ export const fetcher = async (
   try {
     const validatedPayload = editRequestSchema.parse(payload);
 
-    const response = await ky
-      .post("/api/quick-edit", {
-        json: validatedPayload,
-        signal,
-        timeout: 30_000,
-        retry: 0,
-      })
-      .json<EditResponse>();
+    // Call Convex Action directly
+    const editedCode = await convex.action(api.ai.generateQuickEdit, validatedPayload);
 
-    const validatedResponse = editResponseSchema.parse(response);
-
-    return validatedResponse.editedCode || null;
+    return editedCode || null;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       return null;
     }
-    toast.error("Failed to fetch AI quick edit");
+    console.error("Failed to fetch AI quick edit", error);
     return null;
   }
 };
