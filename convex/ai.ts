@@ -3,11 +3,9 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api, internal } from "./_generated/api";
-import { createAnthropic } from "@ai-sdk/anthropic";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { streamText, tool as aiTool } from "ai";
+import { GoogleGenerativeAI, Content } from "@google/generative-ai";
 import crypto from "crypto";
-import { z } from "zod";
+import { Doc } from "./_generated/dataModel";
 
 // --- Encryption Logic ---
 
@@ -56,8 +54,9 @@ export const processMessage = action({
 
     if (!message) return;
 
-    const conversation = await ctx.runQuery(api.conversations.getById, {
-      id: message.conversationId,
+    const conversation = await ctx.runQuery(api.system.getConversationById, {
+      internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
+      conversationId: message.conversationId,
     });
 
     if (!conversation) return;
@@ -67,36 +66,44 @@ export const processMessage = action({
       userId: args.userId,
     });
 
-    // Hardcoded to Gemini 3.1 Pro
-    const getModel = () => {
-      const apiKey = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv)
-        ? decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv)
-        : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const apiKey = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv)
+      ? decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv)
+      : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-      const google = createGoogleGenerativeAI({ apiKey });
-      return google("gemini-3.1-pro");
-    };
+    if (!apiKey) {
+      throw new Error("Google API key not found");
+    }
 
-    const model = getModel();
+    // Masked logging for debugging (safe)
+    const source = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv) ? "DB Settings" : "Env Variable";
+    console.log(`Using API key from ${source} (first 4: ${apiKey.substring(0, 4)})`);
 
-    const recentMessages = await ctx.runQuery(api.conversations.getMessages, {
+    // Use v1beta for Gemma 4
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel(
+      { model: "gemma-4-31b-it", systemInstruction: CODING_AGENT_SYSTEM_PROMPT },
+      { apiVersion: 'v1beta' }
+    );
+
+    const recentMessages = await ctx.runQuery(api.system.getRecentMessages, {
+      internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
       conversationId: message.conversationId,
+      limit: 20,
     });
 
-    const history = recentMessages
-      .filter(m => m._id !== args.messageId)
-      .map(m => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
+    const history: Content[] = recentMessages
+      .filter((m: Doc<"messages">) => m._id !== args.messageId)
+      .map((m: Doc<"messages">) => ({
+        role: m.role === "user" ? "user" : "model",
+        parts: [{ text: m.content }],
       }));
 
     if (conversation.title === "New Conversation") {
       try {
-        const { text } = await streamText({
-          model,
-          prompt: `Conversation history:\n${JSON.stringify(history)}\n\nUser: ${history[history.length-1]?.content}\n\n${TITLE_GENERATOR_SYSTEM_PROMPT}`,
-        });
-        const title = await text;
+        const titleModel = genAI.getGenerativeModel({ model: "gemma-4-31b-it" }, { apiVersion: 'v1beta' });
+        const lastUserMessage = history[history.length - 1]?.parts[0]?.text || "";
+        const titleResult = await titleModel.generateContent(`${TITLE_GENERATOR_SYSTEM_PROMPT}\n\nUser: ${lastUserMessage}`);
+        const title = titleResult.response.text();
         if (title) {
           await ctx.runMutation(internal.messages.updateConversationTitleInternal, {
             conversationId: message.conversationId,
@@ -110,123 +117,16 @@ export const processMessage = action({
 
     let fullContent = "";
     
-    // Define tools with explicit 'any' to avoid SDK version conflicts
-    const tools: any = {
-      listFiles: aiTool({
-        description: "List all files in the project",
-        parameters: z.object({}),
-        execute: async () => {
-          const files = await ctx.runQuery(api.system.getProjectFiles, {
-            internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
-            projectId: message.projectId,
-          });
-          return JSON.stringify(files.map(f => ({ id: f._id, name: f.name, type: f.type, parentId: f.parentId })));
-        },
-      } as any),
-      readFiles: aiTool({
-        description: "Read the content of files",
-        parameters: z.object({ fileIds: z.array(z.string()) }),
-        execute: async ({ fileIds }: any) => {
-          const contents = await Promise.all(fileIds.map(async (id: any) => {
-            const file = await ctx.runQuery(api.system.getFileById, {
-              internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
-              fileId: id,
-            });
-            return { id, name: file?.name, content: file?.content };
-          }));
-          return JSON.stringify(contents);
-        },
-      } as any),
-      createFiles: aiTool({
-        description: "Create multiple files in a project",
-        parameters: z.object({
-          files: z.array(z.object({ name: z.string(), content: z.string() })),
-          parentId: z.string().optional(),
-        }),
-        execute: async ({ files, parentId }: any) => {
-          const result = await ctx.runMutation(api.system.createFiles, {
-            internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
-            projectId: message.projectId,
-            files,
-            parentId: parentId,
-          });
-          return JSON.stringify(result);
-        },
-      } as any),
-      createFolder: aiTool({
-        description: "Create a new folder",
-        parameters: z.object({
-          name: z.string(),
-          parentId: z.string().optional(),
-        }),
-        execute: async ({ name, parentId }: any) => {
-          const folderId = await ctx.runMutation(api.system.createFolder, {
-            internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
-            projectId: message.projectId,
-            name,
-            parentId: parentId,
-          });
-          return `Folder created with ID: ${folderId}`;
-        },
-      } as any),
-      renameFile: aiTool({
-        description: "Rename a file or folder",
-        parameters: z.object({
-          fileId: z.string(),
-          newName: z.string(),
-        }),
-        execute: async ({ fileId, newName }: any) => {
-          await ctx.runMutation(api.system.renameFile, {
-            internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
-            fileId: fileId,
-            newName,
-          });
-          return `Item renamed to ${newName}`;
-        },
-      } as any),
-      deleteFile: aiTool({
-        description: "Delete a file or folder",
-        parameters: z.object({ fileId: z.string() }),
-        execute: async ({ fileId }: any) => {
-          await ctx.runMutation(api.system.deleteFile, {
-            internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
-            fileId: fileId,
-          });
-          return `Item deleted.`;
-        },
-      } as any),
-      scrapeUrls: aiTool({
-        description: "Scrape content from one or more URLs",
-        parameters: z.object({ urls: z.array(z.string()) }),
-        execute: async ({ urls }: any) => {
-          const results = await Promise.all(
-            urls.map(async (url: any) => {
-              const response = await fetch(`https://api.firecrawl.dev/v1/scrape`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
-                },
-                body: JSON.stringify({ url, formats: ["markdown"] }),
-              });
-              const data: any = await response.json();
-              return data.data?.markdown ?? "";
-            })
-          );
-          return results.filter(Boolean).join("\n\n");
-        },
-      } as any),
-    };
-
-    const { textStream, usage } = await streamText({
-      model,
-      system: CODING_AGENT_SYSTEM_PROMPT,
-      messages: history,
-      tools,
+    const chat = model.startChat({
+      history: history.slice(0, -1), // History except the last message
     });
 
-    for await (const delta of textStream) {
-      fullContent += delta;
+    const userMessage = history[history.length - 1]?.parts[0]?.text || "";
+    const result = await chat.sendMessageStream(userMessage);
+
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      fullContent += chunkText;
       await ctx.runMutation(internal.messages.updateContentInternal, {
         messageId: args.messageId,
         content: fullContent,
@@ -234,17 +134,10 @@ export const processMessage = action({
       });
     }
 
-    const finalUsage: any = await usage;
-
     await ctx.runMutation(internal.messages.updateContentInternal, {
       messageId: args.messageId,
       content: fullContent,
       status: "completed",
-      usage: {
-        inputTokens: finalUsage.promptTokens ?? finalUsage.inputTokens ?? 0,
-        outputTokens: finalUsage.completionTokens ?? finalUsage.outputTokens ?? 0,
-        totalTokens: finalUsage.totalTokens ?? 0,
-      },
     });
   },
 });
@@ -261,23 +154,24 @@ export const generateSuggestion = action({
     nextLines: v.optional(v.string()),
     lineNumber: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<string> => {
     const userSettings = await ctx.runQuery(api.system.getUserSettings, {
       internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
       userId: args.userId,
     });
 
-    // Hardcoded to Gemini 3.1 Pro
-    const getModel = () => {
-      const apiKey = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv)
-        ? decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv)
-        : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const apiKey = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv)
+      ? decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv)
+      : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-      const google = createGoogleGenerativeAI({ apiKey });
-      return google("gemini-3.1-pro");
-    };
+    if (!apiKey) throw new Error("Google API key not found");
 
-    const model = getModel();
+    // Masked logging for debugging (safe)
+    const source = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv) ? "DB Settings" : "Env Variable";
+    console.log(`Using API key from ${source} (first 4: ${apiKey.substring(0, 4)})`);
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemma-4-31b-it" }, { apiVersion: 'v1beta' });
 
     const SUGGESTION_PROMPT = `You are a code suggestion assistant.
 
@@ -307,14 +201,11 @@ Follow these steps IN ORDER:
 3. Only if steps 1 and 2 don't apply: suggest what should be typed at the cursor position, using context from full_code.
 
 Your suggestion is inserted immediately after the cursor, so never suggest code that's already in the file.
+Return ONLY the suggestion text.
 </instructions>`;
 
-    const { text } = await streamText({
-      model,
-      prompt: SUGGESTION_PROMPT,
-    });
-
-    return await text;
+    const result = await model.generateContent(SUGGESTION_PROMPT);
+    return result.response.text();
   },
 });
 
@@ -325,23 +216,24 @@ export const generateQuickEdit = action({
     fullCode: v.optional(v.string()),
     instruction: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<string> => {
     const userSettings = await ctx.runQuery(api.system.getUserSettings, {
       internalKey: process.env.IDEON_CONVEX_INTERNAL_KEY!,
       userId: args.userId,
     });
 
-    // Hardcoded to Gemini 3.1 Pro
-    const getModel = () => {
-      const apiKey = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv)
-        ? decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv)
-        : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const apiKey = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv)
+      ? decrypt(userSettings.googleKeyEncrypted, userSettings.googleKeyIv)
+      : process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
-      const google = createGoogleGenerativeAI({ apiKey });
-      return google("gemini-3.1-pro");
-    };
+    if (!apiKey) throw new Error("Google API key not found");
 
-    const model = getModel();
+    // Masked logging for debugging (safe)
+    const source = (userSettings?.googleKeyEncrypted && userSettings?.googleKeyIv) ? "DB Settings" : "Env Variable";
+    console.log(`Using API key from ${source} (first 4: ${apiKey.substring(0, 4)})`);
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemma-4-31b-it" }, { apiVersion: 'v1beta' });
 
     const QUICK_EDIT_PROMPT = `You are a code editing assistant. Edit the selected code based on the user's instruction.
 
@@ -365,11 +257,7 @@ Do not include any explanations or comments unless requested.
 If the instruction is unclear or cannot be applied, return the original code unchanged.
 </instructions>`;
 
-    const { text } = await streamText({
-      model,
-      prompt: QUICK_EDIT_PROMPT,
-    });
-
-    return await text;
+    const result = await model.generateContent(QUICK_EDIT_PROMPT);
+    return result.response.text();
   },
 });

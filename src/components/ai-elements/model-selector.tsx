@@ -116,7 +116,6 @@ export type ModelSelectorLogoProps = Omit<
     | "vultr"
     | "nvidia"
     | "upstage"
-    | "groq"
     | "github-copilot"
     | "mistral"
     | "vercel"
