@@ -24,7 +24,7 @@ Using a custom DSL instead of raw shell scripts or JavaScript for AI operations 
 ## Usage
 
 ```typescript
-import { compile } from './dsl/src/index';
+import { compile } from './src/index.ts';
 
 const source = `
   create_folder("src/components");

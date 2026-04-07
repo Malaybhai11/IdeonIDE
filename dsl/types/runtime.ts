@@ -1,7 +1,7 @@
 export interface Runtime {
-    writeFile: (path: string, content: string) => Promise<void>;
-    readFile: (path: string) => Promise<string>;
-    appendFile: (path: string, content: string) => Promise<void>;
-    executeShell: (command: string) => Promise<void>;
-    exists: (path: string) => Promise<boolean>;
+    writeFile: (path: string, content: string) => any;
+    readFile: (path: string) => any;
+    appendFile: (path: string, content: string) => any;
+    executeShell: (command: string) => any;
+    exists: (path: string) => any;
 }

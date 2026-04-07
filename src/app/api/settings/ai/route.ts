@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 
 import { convex } from "@/lib/convex-client";
 import { encrypt } from "@/lib/encryption";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 
 const settingsSchema = z.object({
   activeProvider: z.enum(["anthropic", "google"]),

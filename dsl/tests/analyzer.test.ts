@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import analyze from '../src/analyzer/index'
-import type { Program } from '../types/nodes'
+import analyze from '../src/analyzer/index.ts'
+import type { Program } from '../types/nodes.ts'
 
 describe('Analyzer', () => {
     it('should throw error if filePath is missing', () => {

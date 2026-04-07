@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import run from '../src/executor/index'
+import run from '../src/executor/index.ts'
 // @ts-expect-error - TS-ignore-fix
-import { OpCode, type Instruction } from '../types/bytecodes'
-import type { Runtime } from '../types/runtime'
+import { OpCode, type Instruction } from '../types/bytecodes.ts'
+import type { Runtime } from '../types/runtime.ts'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
