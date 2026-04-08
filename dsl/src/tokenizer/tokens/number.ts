@@ -1,4 +1,4 @@
-import { isNumber } from "../utils.ts"
+import isNumber from "../utils/number.ts" 
 import { src, cursor, increment, tokens, row, column } from "../data.ts"
 import { UnknownCharacterError } from "../../shared/errors.ts"
 

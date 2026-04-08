@@ -1,6 +1,6 @@
 import { tokens, src, cursor, increment, row, column } from "../data.ts"
-import { isAlphabet } from "../utils.ts"
-import { UnknownKeywordError } from "../../shared/errors"
+import isAlphabet from "../utils/alphabet.ts"
+import { UnknownKeywordError } from "../../shared/errors.ts"
 
 export default function tokenizeKeyword() {
     let lexeme: string = ''

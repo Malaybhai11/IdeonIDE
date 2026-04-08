@@ -1,5 +1,7 @@
 import { type Token } from '../../types/token.ts'
-import { isAlphabet, isNumber, isWhiteSpace } from './utils.ts'
+import isNumber from './utils/number.ts'
+import isWhiteSpace from './utils/whitespace.ts'
+import isAlphabet from './utils/alphabet.ts'
 import { setSrc, src, increment, cursor, tokens } from './data.ts'
 import tokenizeKeyword from './tokens/keywords.ts'
 import tokenizeString from './tokens/string.ts'
