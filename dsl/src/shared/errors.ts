@@ -9,3 +9,9 @@ export class UnknownCharacterError extends Error {
         super(msg)
     }
 }
+
+export class UnexpectedTokenError extends Error {
+    constructor(msg: string = 'Unexpected token') {
+        super(msg)
+    }
+}

@@ -2,7 +2,7 @@ import { type Token } from '../../types/token.ts'
 import isNumber from './utils/number.ts'
 import isWhiteSpace from './utils/whitespace.ts'
 import isAlphabet from './utils/alphabet.ts'
-import { setSrc, src, increment, cursor, tokens } from './data.ts'
+import { setSrc, src, increment, cursor, tokens, row, column } from './data.ts'
 import tokenizeKeyword from './tokens/keywords.ts'
 import tokenizeString from './tokens/string.ts'
 import tokenizeNumber from './tokens/number.ts'
@@ -21,5 +21,9 @@ export default function tokenize(newSrc: string): Array<Token> {
         }
         increment()
     }
+    tokens.push({
+        type: 'TOKEN_EOF', literal: null,
+        lexeme: '', row, column
+    })
     return tokens
 }
