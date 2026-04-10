@@ -1,18 +1,16 @@
+import type { Program, Statement } from '../../types/node.ts'
 import { type Token } from '../../types/token.ts'
-import { advance, isAtEnd, peek, setTokens } from './data.ts'
+import { isAtEnd, setTokens } from './data.ts'
 import parseStatement from './statements/index.ts'
 
 export default function parse(tokens: Array<Token>) {
     setTokens(tokens)
-    let ast = {}
+    const ast: Program = {
+        type: 'Program',
+        body: []
+    }
     while (!isAtEnd()) {
-        console.log(peek())
-        ast = {
-            type: 'Program',
-            body: [
-                parseStatement()
-            ]
-        }
+        ast.body.push(parseStatement() as Statement)
     }
     return ast
 }

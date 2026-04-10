@@ -3,8 +3,10 @@ import tokenize from "./tokenizer/index.ts";
 
 export default function interprete(src: string) {
     const tokens = tokenize(src)
-    // console.log(tokens)
+    console.log("Tokens:\n")
+    console.log(JSON.stringify(tokens, null, 2))
     const ast = parse(tokens)
+    console.log("AST:\n")
     console.log(JSON.stringify(ast, null, 2))
 }
 
