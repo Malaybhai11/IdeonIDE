@@ -1,5 +1,5 @@
 import { UnexpectedTokenError } from '../shared/errors.ts'
-import { Token, TokenType } from '../../types/token.ts'
+import type { Token, TokenType } from '../../types/token.ts'
 
 export let tokens: Array<Token> = []
 export let cursor: number = 0
@@ -25,5 +25,5 @@ export function consume(expectedType: TokenType) {
 }
 
 export function isAtEnd() {
-    return cursor < tokens.length
+    return tokens[cursor].type === 'TOKEN_EOF'
 }

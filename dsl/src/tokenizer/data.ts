@@ -7,13 +7,13 @@ export let column: number = 1
 export let src: string = ''
 
 export function increment() {
-    cursor++
     if (src[cursor] === '\n') {
         row++
-        column = 0
+        column = 1
     } else {
         column++
     }
+    cursor++
 }
 
 export function reset() {

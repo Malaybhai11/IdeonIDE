@@ -3,6 +3,8 @@ import { src, cursor, increment, tokens, row, column } from "../data.ts"
 import { UnknownCharacterError } from "../../shared/errors.ts"
 
 export default function tokenizeNumber() {
+    const startRow = row
+    const startColumn = column
     let lexeme: string = ''
     let hasDot: boolean = false
     while (isNumber(src[cursor]) || src[cursor] === '.') {
@@ -16,6 +18,6 @@ export default function tokenizeNumber() {
     }
     tokens.push({
         type: 'TOKEN_NUMBER', literal: null,
-        lexeme, row, column
+        lexeme, row: startRow, column: startColumn
     })
 }
